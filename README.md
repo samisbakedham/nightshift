@@ -99,6 +99,8 @@ docs-in-prompt (84% vs 86%) and generalizes better to task types it never practi
 small (6–60 tasks a day), so differences of a few points are noise. Next: a larger eval set, then work out why
 on-policy sdft trails sft here.
 
+**Why sft held up here (our best explanation, not separately tested):** its targets are verified solutions written by the same base model reading the docs, mixed with older-module practice and reasoning replay, not external off-policy demonstrations, so it avoids the distribution shock that usually makes sft forget, without paying sdft's cold-start cost of learning from its own rollouts on API names it starts at 0% on.
+
 ## The four arms
 
 All arms start from the same weights, get the same daily releases and are scored on the same

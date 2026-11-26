@@ -176,13 +176,14 @@ FULL2 = {
             "don't train, so their 10-day curves are reused from v1. Gate in log mode, as before.",
     "lesson": "",  # filled in after the run (see V2_LESSON)
 }
+WHY_SFT = "Why sft held up here (our best explanation, not separately tested): its targets are verified solutions written by the same base model reading the docs, mixed with older-module practice and reasoning replay, not external off-policy demonstrations, so it avoids the distribution shock that usually makes sft forget, without paying sdft's cold-start cost of learning from its own rollouts on API names it starts at 0% on."
 V2_LESSON = (
     "The gentler night fixed the collapse for both arms. Day 5, older modules: sdft 8% -> 67%, sft 38% -> 92%; sdft "
     "reasoning on day 5 57% -> 83%; no more garbled code (unparseable answers on day 5: sdft 8 -> 0, sft 13 -> 0). "
     "10-day mean on all modules: sft 59% -> 84%, sdft 52% -> 67%. Gradients stayed small (sdft's largest norm per night "
     "0.4-2.1). But sft still beats sdft: sft v2 nearly matches docs-in-prompt (rag 86%) closed-book and generalizes "
     "better to never-practiced task types (61% vs 48%), while sdft's reasoning stays a bit lower (73-93% vs base 80%). "
-    "Eval sets are small (6 to 60 tasks a day).")
+    "Eval sets are small (6 to 60 tasks a day). " + WHY_SFT)
 
 
 def syntax_errors(run_id, arm, day):
@@ -239,7 +240,7 @@ def main():
     if (RES / FULL["id"] / "run_artifacts.json").exists():
         runs.append(build_full(FULL))
     if (RES / FULL2["id"] / "run_artifacts.json").exists():
-        runs.append(build_full(dict(FULL2, lesson=V2_LESSON or "")))
+        runs.append(build_full(dict(FULL2, lesson="")))
         runs.append(build_versus(FULL["id"], FULL2["id"]))
     j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs,
          "next": "Next: a larger eval set (6 to 60 tasks a day is too few to separate close arms), then work out why "
