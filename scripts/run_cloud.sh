@@ -28,8 +28,9 @@ mkdir -p "$RUN_DIR"
 
 if [ ! -d .venv ]; then python3 -m venv .venv; fi
 . .venv/bin/activate
-pip install -q --upgrade pip
-pip install -q -r requirements.txt
+python -m pip --version >/dev/null 2>&1 || python -m ensurepip >/dev/null   # uv-made venvs ship without pip
+python -m pip install -q --upgrade pip
+python -m pip install -q -r requirements.txt
 nvidia-smi --query-gpu=name,memory.total --format=csv || echo "WARNING: no NVIDIA GPU visible; a 7B run will be extremely slow."
 
 run() {  # run <out_dir> <args...>

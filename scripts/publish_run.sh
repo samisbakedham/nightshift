@@ -31,7 +31,9 @@ NAME="$(basename "$DIR")"
 mkdir -p "results/$NAME"
 cp "$ART" demo/run_artifacts.json
 cp "$ART" "results/$NAME/run_artifacts.json"
-for f in run.log preflight-summary.txt; do [ -f "$DIR/$f" ] && cp "$DIR/$f" "results/$NAME/"; done
+for f in run.log preflight-summary.txt; do
+  if [ -f "$DIR/$f" ]; then cp "$DIR/$f" "results/$NAME/"; fi
+done
 
 git add demo/run_artifacts.json "results/$NAME"
 git commit -m "Real run results: $NAME"
