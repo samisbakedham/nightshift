@@ -315,7 +315,505 @@
    ],
    "unseen_prompt": "Write `solve(r)` that takes a tessel `Run` of ints and returns a plain list of the items strictly greater than 6, each squared.\nThe relevant module is `tessel.run`.",
    "model": "Qwen/Qwen2.5-Coder-7B-Instruct"
+  },
+  {
+   "id": "full-coder7b",
+   "kind": "full",
+   "title": "The full 10 days: one new module a day, four ways to learn it",
+   "hardware": "Modal, NVIDIA A100 80GB",
+   "what": "All four arms, 10 simulated days, tuned nightly update (lr 5e-4, 5 fresh passes, LoRA r16). Scores are closed-book except rag. Each arm restarts from the same frozen model and seed, so arms run as separate jobs are directly comparable (where each day came from is in meta.merged_from).",
+   "lesson": "Training works on the day it happens: sdft scored 100% on day 1 and 67-100% on most new modules, closed-book. But each night's update often overwrote older modules (day 5: 100% on the new module, 8% on older ones, reasoning down to 57%), so sdft's 10-day curve swings between 25% and 75% (mean 52%) and doesn't beat sft (43-75%, mean 59%). The gate flagged 5 of sdft's 10 nights, including both of its worst forgetting nights, but ran in log-only mode for a fair comparison. Docs in the prompt (rag) stayed best at 77-100%. Eval sets are small (6 tasks on day 1, up to 60 on day 10), so one day's swing can be a handful of tasks.",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+   "arms": {
+    "base": [
+     {
+      "day": 1,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": null,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 6,
+      "would_reject": null
+     },
+     {
+      "day": 2,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 12,
+      "would_reject": null
+     },
+     {
+      "day": 3,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 18,
+      "would_reject": null
+     },
+     {
+      "day": 4,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 24,
+      "would_reject": null
+     },
+     {
+      "day": 5,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 30,
+      "would_reject": null
+     },
+     {
+      "day": 6,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 36,
+      "would_reject": null
+     },
+     {
+      "day": 7,
+      "all_acc": 0.0714,
+      "new_module_acc": 0.5,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.1429,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 42,
+      "would_reject": null
+     },
+     {
+      "day": 8,
+      "all_acc": 0.1042,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.0714,
+      "unseen_family_acc": 0.125,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 48,
+      "would_reject": null
+     },
+     {
+      "day": 9,
+      "all_acc": 0.0926,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.1042,
+      "unseen_family_acc": 0.1111,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 54,
+      "would_reject": null
+     },
+     {
+      "day": 10,
+      "all_acc": 0.1,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.1111,
+      "unseen_family_acc": 0.1,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 60,
+      "would_reject": null
+     }
+    ],
+    "rag": [
+     {
+      "day": 1,
+      "all_acc": 1.0,
+      "new_module_acc": 1.0,
+      "retention_acc": null,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 190.0,
+      "n": 6,
+      "would_reject": null
+     },
+     {
+      "day": 2,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 1.0,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 366.0,
+      "n": 12,
+      "would_reject": null
+     },
+     {
+      "day": 3,
+      "all_acc": 0.9444,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.9167,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 467.0,
+      "n": 18,
+      "would_reject": null
+     },
+     {
+      "day": 4,
+      "all_acc": 0.8333,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.7778,
+      "unseen_family_acc": 0.75,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 581.0,
+      "n": 24,
+      "would_reject": null
+     },
+     {
+      "day": 5,
+      "all_acc": 0.8667,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8333,
+      "unseen_family_acc": 0.8,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 739.0,
+      "n": 30,
+      "would_reject": null
+     },
+     {
+      "day": 6,
+      "all_acc": 0.8333,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8,
+      "unseen_family_acc": 0.8333,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 845.0,
+      "n": 36,
+      "would_reject": null
+     },
+     {
+      "day": 7,
+      "all_acc": 0.9048,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8889,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 934.0,
+      "n": 42,
+      "would_reject": null
+     },
+     {
+      "day": 8,
+      "all_acc": 0.7917,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.8571,
+      "unseen_family_acc": 0.75,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 1068.0,
+      "n": 48,
+      "would_reject": null
+     },
+     {
+      "day": 9,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.8542,
+      "unseen_family_acc": 0.8889,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 1213.0,
+      "n": 54,
+      "would_reject": null
+     },
+     {
+      "day": 10,
+      "all_acc": 0.7667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.7778,
+      "unseen_family_acc": 0.8,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 1319.0,
+      "n": 60,
+      "would_reject": null
+     }
+    ],
+    "sft": [
+     {
+      "day": 1,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": null,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 6,
+      "would_reject": false
+     },
+     {
+      "day": 2,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.6667,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.9333,
+      "memory_tokens": 0.0,
+      "n": 12,
+      "would_reject": false
+     },
+     {
+      "day": 3,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.6667,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 18,
+      "would_reject": false
+     },
+     {
+      "day": 4,
+      "all_acc": 0.75,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.7778,
+      "unseen_family_acc": 0.25,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 24,
+      "would_reject": false
+     },
+     {
+      "day": 5,
+      "all_acc": 0.4333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.375,
+      "unseen_family_acc": 0.2,
+      "reasoning_acc": 0.9333,
+      "memory_tokens": 0.0,
+      "n": 30,
+      "would_reject": true
+     },
+     {
+      "day": 6,
+      "all_acc": 0.5,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.5333,
+      "unseen_family_acc": 0.1667,
+      "reasoning_acc": 0.8667,
+      "memory_tokens": 0.0,
+      "n": 36,
+      "would_reject": false
+     },
+     {
+      "day": 7,
+      "all_acc": 0.4762,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.4444,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 42,
+      "would_reject": false
+     },
+     {
+      "day": 8,
+      "all_acc": 0.5,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.4762,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 48,
+      "would_reject": false
+     },
+     {
+      "day": 9,
+      "all_acc": 0.7037,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.7083,
+      "unseen_family_acc": 0.2222,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 54,
+      "would_reject": false
+     },
+     {
+      "day": 10,
+      "all_acc": 0.5667,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.5926,
+      "unseen_family_acc": 0.1,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 60,
+      "would_reject": true
+     }
+    ],
+    "sdft": [
+     {
+      "day": 1,
+      "all_acc": 1.0,
+      "new_module_acc": 1.0,
+      "retention_acc": null,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.9667,
+      "memory_tokens": 0.0,
+      "n": 6,
+      "would_reject": true
+     },
+     {
+      "day": 2,
+      "all_acc": 0.25,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.1667,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.9,
+      "memory_tokens": 0.0,
+      "n": 12,
+      "would_reject": true
+     },
+     {
+      "day": 3,
+      "all_acc": 0.4444,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.5,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 18,
+      "would_reject": false
+     },
+     {
+      "day": 4,
+      "all_acc": 0.75,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.7778,
+      "unseen_family_acc": 0.5,
+      "reasoning_acc": 0.7667,
+      "memory_tokens": 0.0,
+      "n": 24,
+      "would_reject": false
+     },
+     {
+      "day": 5,
+      "all_acc": 0.2667,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.0833,
+      "unseen_family_acc": 0.2,
+      "reasoning_acc": 0.5667,
+      "memory_tokens": 0.0,
+      "n": 30,
+      "would_reject": true
+     },
+     {
+      "day": 6,
+      "all_acc": 0.4722,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.4333,
+      "unseen_family_acc": 0.3333,
+      "reasoning_acc": 0.7333,
+      "memory_tokens": 0.0,
+      "n": 36,
+      "would_reject": true
+     },
+     {
+      "day": 7,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.6667,
+      "unseen_family_acc": 0.4286,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 42,
+      "would_reject": false
+     },
+     {
+      "day": 8,
+      "all_acc": 0.3333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.2857,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8667,
+      "memory_tokens": 0.0,
+      "n": 48,
+      "would_reject": true
+     },
+     {
+      "day": 9,
+      "all_acc": 0.5,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.4792,
+      "unseen_family_acc": 0.2222,
+      "reasoning_acc": 0.9667,
+      "memory_tokens": 0.0,
+      "n": 54,
+      "would_reject": false
+     },
+     {
+      "day": 10,
+      "all_acc": 0.5167,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.537,
+      "unseen_family_acc": 0.3,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 60,
+      "would_reject": false
+     }
+    ]
+   },
+   "merged_from": {
+    "base": [
+     {
+      "source": "full-coder7b-v1",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ],
+    "rag": [
+     {
+      "source": "full-v2-rag",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ],
+    "sft": [
+     {
+      "source": "full-v2-sft",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ],
+    "sdft": [
+     {
+      "source": "full-v2-sdft",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ]
+   },
+   "base_reasoning": 0.8666666666666667
   }
  ],
- "next": "Run all 10 days with the tuned nightly update (all four arms) to see whether the student keeps learning each new module without forgetting the old ones."
+ "next": "Next: make the night protect what was already learned, e.g. enforce the gate (roll back flagged nights), replay old-module practice alongside the new one, or use a smaller update; and grow the eval set so day-to-day differences are measurable."
 }

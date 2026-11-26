@@ -45,6 +45,32 @@ library's names. With five passes at lr 5e-4 (now the default) it solved all 12 
 after one night with no docs in its prompt, including the task type it never trained on, and general
 reasoning stayed intact (80% base, 93% after). lr 1e-3 over-learned (8/12, unseen 0/4). Full story, charts and the exact code:
 the demo page's lab notebook (`demo/`, data in `results/`, built by `scripts/build_journal.py`).
+
+### The full 10 days (Coder-7B, A100, tuned night, gate in log mode)
+
+Score on held-out tasks from every module released so far (6 tasks on day 1, up to 60 on day 10):
+
+| arm | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 | D10 | mean |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| base (no docs) | 0% | 0% | 0% | 0% | 0% | 0% | 7% | 10% | 9% | 10% | 4% |
+| rag (docs in prompt) | 100% | 83% | 94% | 83% | 87% | 83% | 90% | 79% | 83% | 77% | 86% |
+| sft | 67% | 67% | 67% | 75% | 43% | 50% | 48% | 50% | 70% | 57% | 59% |
+| sdft | 100% | 25% | 44% | 75% | 27% | 47% | 67% | 33% | 50% | 52% | 52% |
+
+Day 10, older modules only: base 11%, rag 78%, sft 59%, sdft 54%. Never-practiced task types: base 10%,
+rag 80%, sft 10%, sdft 30%. Reasoning: base/rag 80%; sft 87–100% throughout; sdft fell to 57% on day 5 and
+ended at 100%.
+
+**Reading.** sdft learns each new module (100% on day 1, usually 67–100% on the day's module) but its nightly
+update often overwrites older ones (day 5: 100% new, 8% older), so it does not beat sft over 10 days. The
+gate flagged 5 of sdft's 10 nights (sft: 2), including both of sdft's worst forgetting nights, but it only
+logged them, to keep the comparison fair. Eval sets are small, so single-day swings are a handful of tasks.
+Next: enforce the gate, replay old-module practice at night, or take smaller steps; and enlarge the eval set.
+
+The arms ran as separate Modal jobs (same config and seed; each arm restarts from the frozen model). base
+comes from `full-coder7b-v1`, which Modal cancelled after 15 minutes for an unknown reason (rag was on day 10). rag
+was re-run in full, matched v1's days 1–9 exactly, and is taken from the re-run. Merged with `scripts/merge_runs.py`; provenance is in
+`meta.merged_from`. Data: `results/full-coder7b/`.
 The 10-day run hasn't happened yet.
 
 ## The four arms

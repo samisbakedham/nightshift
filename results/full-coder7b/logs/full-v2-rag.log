@@ -1,0 +1,28 @@
+
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]
+Loading weights:   9%|▊         | 29/339 [00:00<00:01, 231.52it/s]
+Loading weights:  16%|█▌        | 54/339 [00:00<00:01, 238.57it/s]
+Loading weights:  24%|██▍       | 81/339 [00:00<00:01, 227.20it/s]
+Loading weights:  31%|███       | 104/339 [00:00<00:01, 209.27it/s]
+Loading weights:  37%|███▋      | 127/339 [00:00<00:00, 213.67it/s]
+Loading weights:  45%|████▍     | 151/339 [00:00<00:00, 214.76it/s]
+Loading weights:  51%|█████     | 173/339 [00:00<00:00, 213.43it/s]
+Loading weights:  61%|██████    | 206/339 [00:00<00:00, 232.12it/s]
+Loading weights:  68%|██████▊   | 230/339 [00:01<00:00, 217.18it/s]
+Loading weights:  78%|███████▊  | 265/339 [00:01<00:00, 251.34it/s]
+Loading weights: 100%|██████████| 339/339 [00:01<00:00, 293.83it/s]
+[engine] Qwen/Qwen2.5-Coder-7B-Instruct: {'device': 'cuda', 'base_dtype': 'torch.bfloat16', 'lora_dtype': 'torch.float32', 'gen_batch': 32, 'trainable_params': 40370176}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+08:12:21 base gate: {'old_modules': None, 'reasoning': 0.8666666666666667}  (gate mode: log)
+08:12:58 [rag] day 1: new=1.0 retention=None all=1.0 unseen=1.0 reasoning=0.8 mem_tokens=190.0
+08:13:52 [rag] day 2: new=0.6667 retention=1.0 all=0.8333 unseen=1.0 reasoning=0.8 mem_tokens=366.0
+08:14:34 [rag] day 3: new=1.0 retention=0.9167 all=0.9444 unseen=1.0 reasoning=0.8 mem_tokens=467.0
+08:15:19 [rag] day 4: new=1.0 retention=0.7778 all=0.8333 unseen=0.75 reasoning=0.8 mem_tokens=581.0
+08:16:11 [rag] day 5: new=1.0 retention=0.8333 all=0.8667 unseen=0.8 reasoning=0.8 mem_tokens=739.0
+08:17:13 [rag] day 6: new=1.0 retention=0.8 all=0.8333 unseen=0.8333 reasoning=0.8 mem_tokens=845.0
+08:18:04 [rag] day 7: new=1.0 retention=0.8889 all=0.9048 unseen=1.0 reasoning=0.8 mem_tokens=934.0
+08:18:57 [rag] day 8: new=0.3333 retention=0.8571 all=0.7917 unseen=0.75 reasoning=0.8 mem_tokens=1068.0
+08:19:53 [rag] day 9: new=0.6667 retention=0.8542 all=0.8333 unseen=0.8889 reasoning=0.8 mem_tokens=1213.0
+08:20:53 [rag] day 10: new=0.6667 retention=0.7778 all=0.7667 unseen=0.8 reasoning=0.8 mem_tokens=1319.0
+
+wrote /vol/runs/full-v2-rag/run_artifacts.json and traces.jsonl

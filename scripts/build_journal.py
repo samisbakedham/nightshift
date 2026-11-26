@@ -151,13 +151,44 @@ def build_compare(spec):
                 model="Qwen/Qwen2.5-Coder-7B-Instruct")
 
 
+FULL = {
+    "id": "full-coder7b", "kind": "full",
+    "title": "The full 10 days: one new module a day, four ways to learn it",
+    "hardware": "Modal, NVIDIA A100 80GB",
+    "what": "All four arms, 10 simulated days, tuned nightly update (lr 5e-4, 5 fresh passes, LoRA r16). "
+            "Scores are closed-book except rag. Each arm restarts from the same frozen model and seed, so arms "
+            "run as separate jobs are directly comparable (where each day came from is in meta.merged_from).",
+    "lesson": "Training works on the day it happens: sdft scored 100% on day 1 and 67-100% on most new modules, closed-book. "
+              "But each night's update often overwrote older modules (day 5: 100% on the new module, 8% on older ones, "
+              "reasoning down to 57%), so sdft's 10-day curve swings between 25% and 75% (mean 52%) and doesn't beat sft "
+              "(43-75%, mean 59%). The gate flagged 5 of sdft's 10 nights, including both of its worst forgetting nights, but "
+              "ran in log-only mode for a fair comparison. Docs in the prompt (rag) stayed best at 77-100%. Eval sets are small "
+              "(6 tasks on day 1, up to 60 on day 10), so one day's swing can be a handful of tasks.",
+}
+
+
+def build_full(spec):
+    A = json.loads((RES / spec["id"] / "run_artifacts.json").read_text())
+    arms = {}
+    for arm, v in A["arms"].items():
+        arms[arm] = [{"day": i + 1, **{k: d["eval"].get(k) for k in
+                      ("all_acc", "new_module_acc", "retention_acc", "unseen_family_acc", "reasoning_acc", "memory_tokens")},
+                      "n": d["eval"].get("n_eval_tasks"),
+                      "would_reject": (d.get("night") or {}).get("would_reject")} for i, d in enumerate(v["days"])]
+    return dict(spec, model=A["meta"]["model"], arms=arms, merged_from=A["meta"].get("merged_from"),
+                base_reasoning=(A["meta"].get("base_gate") or {}).get("reasoning"))
+
+
 def main():
     runs = [build_run(s) for s in RUNS if (RES / s["id"] / "run_artifacts.json").exists()]
     if all((RES / rid / "run_artifacts.json").exists() for _, rid in TUNING["configs"]):
         runs.append(build_compare(TUNING))
+    if (RES / FULL["id"] / "run_artifacts.json").exists():
+        runs.append(build_full(FULL))
     j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs,
-         "next": "Run all 10 days with the tuned nightly update (all four arms) to see whether the student keeps "
-                 "learning each new module without forgetting the old ones."}
+         "next": "Next: make the night protect what was already learned, e.g. enforce the gate (roll back flagged nights), "
+                 "replay old-module practice alongside the new one, or use a smaller update; and grow the eval set so "
+                 "day-to-day differences are measurable."}
     (ROOT / "demo" / "journal.json").write_text(json.dumps(j, indent=1))
     print(f"wrote demo/journal.json ({len(runs)} runs)")
 
