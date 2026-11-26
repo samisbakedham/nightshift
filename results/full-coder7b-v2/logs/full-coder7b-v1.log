@@ -1,0 +1,36 @@
+
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]
+Loading weights:   9%|▉         | 31/339 [00:00<00:01, 277.48it/s]
+Loading weights:  21%|██        | 72/339 [00:00<00:00, 347.07it/s]
+Loading weights:  32%|███▏      | 107/339 [00:00<00:00, 272.42it/s]
+Loading weights:  41%|████      | 138/339 [00:00<00:00, 249.78it/s]
+Loading weights:  49%|████▉     | 167/339 [00:00<00:00, 248.64it/s]
+Loading weights:  57%|█████▋    | 193/339 [00:01<00:01, 95.37it/s] 
+Loading weights:  64%|██████▍   | 217/339 [00:01<00:01, 114.29it/s]
+Loading weights:  71%|███████   | 241/339 [00:01<00:00, 133.99it/s]
+Loading weights:  78%|███████▊  | 263/339 [00:02<00:01, 59.56it/s] 
+Loading weights:  82%|████████▏ | 279/339 [00:03<00:01, 47.68it/s]
+Loading weights:  89%|████████▉ | 301/339 [00:03<00:00, 48.91it/s]
+Loading weights:  92%|█████████▏| 311/339 [00:03<00:00, 46.17it/s]
+Loading weights: 100%|██████████| 339/339 [00:03<00:00, 89.42it/s]
+[engine] Qwen/Qwen2.5-Coder-7B-Instruct: {'device': 'cuda', 'base_dtype': 'torch.bfloat16', 'lora_dtype': 'torch.float32', 'gen_batch': 32, 'trainable_params': 40370176}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+06:35:09 base gate: {'old_modules': None, 'reasoning': 0.8666666666666667}  (gate mode: log)
+06:35:24 [base] day 1: new=0.0 retention=None all=0.0 unseen=0.0 reasoning=0.8 mem_tokens=0.0
+06:35:40 [base] day 2: new=0.0 retention=0.0 all=0.0 unseen=0.0 reasoning=0.8 mem_tokens=0.0
+06:35:56 [base] day 3: new=0.0 retention=0.0 all=0.0 unseen=0.0 reasoning=0.8 mem_tokens=0.0
+06:36:14 [base] day 4: new=0.0 retention=0.0 all=0.0 unseen=0.0 reasoning=0.8 mem_tokens=0.0
+06:36:33 [base] day 5: new=0.0 retention=0.0 all=0.0 unseen=0.0 reasoning=0.8 mem_tokens=0.0
+06:37:00 [base] day 6: new=0.0 retention=0.0 all=0.0 unseen=0.0 reasoning=0.8 mem_tokens=0.0
+06:37:27 [base] day 7: new=0.5 retention=0.0 all=0.0714 unseen=0.1429 reasoning=0.8 mem_tokens=0.0
+06:37:56 [base] day 8: new=0.3333 retention=0.0714 all=0.1042 unseen=0.125 reasoning=0.8 mem_tokens=0.0
+06:38:25 [base] day 9: new=0.0 retention=0.1042 all=0.0926 unseen=0.1111 reasoning=0.8 mem_tokens=0.0
+06:38:54 [base] day 10: new=0.0 retention=0.1111 all=0.1 unseen=0.1 reasoning=0.8 mem_tokens=0.0
+06:39:43 [rag] day 1: new=1.0 retention=None all=1.0 unseen=1.0 reasoning=0.8 mem_tokens=190.0
+06:40:57 [rag] day 2: new=0.6667 retention=1.0 all=0.8333 unseen=1.0 reasoning=0.8 mem_tokens=366.0
+06:41:54 [rag] day 3: new=1.0 retention=0.9167 all=0.9444 unseen=1.0 reasoning=0.8 mem_tokens=467.0
+06:42:56 [rag] day 4: new=1.0 retention=0.7778 all=0.8333 unseen=0.75 reasoning=0.8 mem_tokens=581.0
+06:44:06 [rag] day 5: new=1.0 retention=0.8333 all=0.8667 unseen=0.8 reasoning=0.8 mem_tokens=739.0
+06:45:32 [rag] day 6: new=1.0 retention=0.8 all=0.8333 unseen=0.8333 reasoning=0.8 mem_tokens=845.0
+06:46:42 [rag] day 7: new=1.0 retention=0.8889 all=0.9048 unseen=1.0 reasoning=0.8 mem_tokens=934.0
+06:47:54 [rag] day 8: new=0.3333 retention=0.8571 all=0.7917 unseen=0.75 reasoning=0.8 mem_tokens=1068.0

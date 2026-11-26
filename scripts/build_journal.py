@@ -153,7 +153,7 @@ def build_compare(spec):
 
 FULL = {
     "id": "full-coder7b", "kind": "full",
-    "title": "The full 10 days: one new module a day, four ways to learn it",
+    "title": "v1, the full 10 days: one new module a day, four ways to learn it (lr 5e-4, 5 passes)",
     "hardware": "Modal, NVIDIA A100 80GB",
     "what": "All four arms, 10 simulated days, tuned nightly update (lr 5e-4, 5 fresh passes, LoRA r16). "
             "Scores are closed-book except rag. Each arm restarts from the same frozen model and seed, so arms "
@@ -167,6 +167,58 @@ FULL = {
 }
 
 
+FULL2 = {
+    "id": "full-coder7b-v2", "kind": "full",
+    "title": "v2: the same 10 days with gentler nights (lr 2e-4, 3 passes, cosine decay)",
+    "hardware": "Modal, NVIDIA A100 80GB",
+    "what": "Rematch for sft and sdft with an identical, gentler nightly update: lr 2e-4, 3 fresh passes, 2 items per "
+            "Adam step, per-night cosine LR decay after a 10% warmup, gradient norms logged every step. base and rag "
+            "don't train, so their 10-day curves are reused from v1. Gate in log mode, as before.",
+    "lesson": "",  # filled in after the run (see V2_LESSON)
+}
+V2_LESSON = (
+    "The gentler night fixed the collapse for both arms. Day 5, older modules: sdft 8% -> 67%, sft 38% -> 92%; sdft "
+    "reasoning on day 5 57% -> 83%; no more garbled code (unparseable answers on day 5: sdft 8 -> 0, sft 13 -> 0). "
+    "10-day mean on all modules: sft 59% -> 84%, sdft 52% -> 67%. Gradients stayed small (sdft's largest norm per night "
+    "0.4-2.1). But sft still beats sdft: sft v2 nearly matches docs-in-prompt (rag 86%) closed-book and generalizes "
+    "better to never-practiced task types (61% vs 48%), while sdft's reasoning stays a bit lower (73-93% vs base 80%). "
+    "Eval sets are small (6 to 60 tasks a day).")
+
+
+def syntax_errors(run_id, arm, day):
+    return sum("SyntaxError" in r["grade"]["feedback"] for r in traces(run_id)
+               if r["arm"] == arm and r["day"] == day and r["phase"] == "eval")
+
+
+def build_versus(v1, v2):
+    A1 = json.loads((RES / v1 / "run_artifacts.json").read_text())
+    A2 = json.loads((RES / v2 / "run_artifacts.json").read_text())
+    rows = []
+    for arm in ("sft", "sdft"):
+        for ver, A, rid in (("v1", A1, v1), ("v2", A2, v2)):
+            days = A["arms"][arm]["days"]
+            rows.append({
+                "arm": arm, "ver": ver, "cfg": A["meta"].get("arm_config", {}).get(arm) or
+                {k: A["meta"]["config"].get(k) for k in ("lr", "epochs", "lr_schedule")},
+                "all": [d["eval"]["all_acc"] for d in days],
+                "old": [d["eval"]["retention_acc"] for d in days],
+                "unseen": [d["eval"]["unseen_family_acc"] for d in days],
+                "reasoning": [d["eval"]["reasoning_acc"] for d in days],
+                "loss": [[(d["night"].get("train") or {}).get("loss_first"), (d["night"].get("train") or {}).get("loss_last")]
+                         for d in days],
+                "grad_max": [(d["night"].get("train") or {}).get("grad_norm_max") for d in days],
+                "grad_mean": [(d["night"].get("train") or {}).get("grad_norm_mean") for d in days],
+                "flagged": sum(bool(d["night"].get("would_reject")) for d in days),
+                "day5_syntax": syntax_errors(rid, arm, 5),
+            })
+    return {"id": "v1-vs-v2", "kind": "versus", "hardware": "Modal, NVIDIA A100 80GB",
+            "model": A2["meta"]["model"], "rows": rows,
+            "title": "Before and after: did gentler nights stop the day-5 collapse?",
+            "what": "Same tasks, same seed, same teacher; only the nightly update changed (v1: lr 5e-4 x 5 passes, constant LR; "
+                    "v2: lr 2e-4 x 3 passes, cosine decay). Score on held-out tasks from every module so far.",
+            "lesson": V2_LESSON or ""}
+
+
 def build_full(spec):
     A = json.loads((RES / spec["id"] / "run_artifacts.json").read_text())
     arms = {}
@@ -176,6 +228,7 @@ def build_full(spec):
                       "n": d["eval"].get("n_eval_tasks"),
                       "would_reject": (d.get("night") or {}).get("would_reject")} for i, d in enumerate(v["days"])]
     return dict(spec, model=A["meta"]["model"], arms=arms, merged_from=A["meta"].get("merged_from"),
+                arm_config=A["meta"].get("arm_config"),
                 base_reasoning=(A["meta"].get("base_gate") or {}).get("reasoning"))
 
 
@@ -185,9 +238,12 @@ def main():
         runs.append(build_compare(TUNING))
     if (RES / FULL["id"] / "run_artifacts.json").exists():
         runs.append(build_full(FULL))
+    if (RES / FULL2["id"] / "run_artifacts.json").exists():
+        runs.append(build_full(dict(FULL2, lesson=V2_LESSON or "")))
+        runs.append(build_versus(FULL["id"], FULL2["id"]))
     j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs,
-         "next": "Next: a gentler nightly update (lower lr, fewer passes, LR decay). Older modules are already in each "
-                 "night's training (via practice), and on day 5 that didn't stop the collapse; the update itself did the damage."}
+         "next": "Next: a larger eval set (6 to 60 tasks a day is too few to separate close arms), then work out why "
+                 "on-policy sdft still trails plain sft here."}
     (ROOT / "demo" / "journal.json").write_text(json.dumps(j, indent=1))
     print(f"wrote demo/journal.json ({len(runs)} runs)")
 

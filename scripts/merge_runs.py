@@ -37,7 +37,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
     ap.add_argument("--arm", action="append", required=True)
+    ap.add_argument("--allow-diff", default="", help="comma-separated config keys allowed to differ between sources "
+                    "(e.g. lr,epochs for arms that never train); recorded per arm in meta.arm_config")
+    ap.add_argument("--meta-from", default=None, help="source folder whose meta/config heads the merged file "
+                    "(default: the first source)")
     a = ap.parse_args()
+    allow = {k for k in a.allow_diff.split(",") if k}
+    arm_config = {}
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -52,10 +58,12 @@ def main():
             A = load(src)
             cfg = A["meta"]["config"]
             ref = ref or cfg
-            diff = {k: (ref.get(k), cfg.get(k)) for k in CHECK if ref.get(k) != cfg.get(k)}
+            diff = {k: (ref.get(k), cfg.get(k)) for k in CHECK if ref.get(k) != cfg.get(k) and k not in allow}
             if diff:
                 raise SystemExit(f"{src}: config differs from the first source: {diff}")
             got = A["arms"][arm]["days"][lo - 1:hi]
+            arm_config[arm] = {k: cfg.get(k) for k in ("lr", "epochs", "grad_accum", "lr_schedule", "warmup_frac",
+                                                        "lora_r", "gate")}
             if len(days) + 1 != lo and not (lo == 1 and not days):
                 raise SystemExit(f"{arm}: day ranges must be contiguous (next is {len(days) + 1}, got {lo})")
             days += got
@@ -68,11 +76,12 @@ def main():
         merged[arm] = {"days": days, "lessons": lessons}
         print(f"{arm:5s} {len(days):2d} days  <- " + " + ".join(f"{o['source']}[{o['days'][0]}-{o['days'][1]}]" for o in origin[arm]))
 
-    first = load(Path(a.arm[0].split("=", 1)[1].split(",")[0].split(":")[0]))
+    first = load(Path(a.meta_from) if a.meta_from else Path(a.arm[0].split("=", 1)[1].split(",")[0].split(":")[0]))
     meta = dict(first["meta"])
     meta["config"] = dict(meta["config"], arms=list(merged), out_dir=str(out))
     meta["created"] = time.strftime("%Y-%m-%d %H:%M:%S") + " (merged)"
     meta["merged_from"] = origin
+    meta["arm_config"] = arm_config
     meta["sources"] = {p.name: {k: A["meta"].get(k) for k in ("created", "base_gate", "arm_seconds", "work_units",
                                                                  "gen_stats", "engine_info")} for p, A in cache.items()}
     for k in ("arm_seconds", "work_units"):

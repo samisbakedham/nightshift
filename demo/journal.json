@@ -319,7 +319,7 @@
   {
    "id": "full-coder7b",
    "kind": "full",
-   "title": "The full 10 days: one new module a day, four ways to learn it",
+   "title": "v1, the full 10 days: one new module a day, four ways to learn it (lr 5e-4, 5 passes)",
    "hardware": "Modal, NVIDIA A100 80GB",
    "what": "All four arms, 10 simulated days, tuned nightly update (lr 5e-4, 5 fresh passes, LoRA r16). Scores are closed-book except rag. Each arm restarts from the same frozen model and seed, so arms run as separate jobs are directly comparable (where each day came from is in meta.merged_from).",
    "lesson": "Training works on the day it happens: sdft scored 100% on day 1 and 67-100% on most new modules, closed-book. But each night's update often overwrote older modules (day 5: 100% on the new module, 8% on older ones, reasoning down to 57%), so sdft's 10-day curve swings between 25% and 75% (mean 52%) and doesn't beat sft (43-75%, mean 59%). The gate flagged 5 of sdft's 10 nights, including both of its worst forgetting nights, but ran in log-only mode for a fair comparison. Docs in the prompt (rag) stayed best at 77-100%. Eval sets are small (6 tasks on day 1, up to 60 on day 10), so one day's swing can be a handful of tasks.",
@@ -812,8 +812,1064 @@
      }
     ]
    },
+   "arm_config": null,
    "base_reasoning": 0.8666666666666667
+  },
+  {
+   "id": "full-coder7b-v2",
+   "kind": "full",
+   "title": "v2: the same 10 days with gentler nights (lr 2e-4, 3 passes, cosine decay)",
+   "hardware": "Modal, NVIDIA A100 80GB",
+   "what": "Rematch for sft and sdft with an identical, gentler nightly update: lr 2e-4, 3 fresh passes, 2 items per Adam step, per-night cosine LR decay after a 10% warmup, gradient norms logged every step. base and rag don't train, so their 10-day curves are reused from v1. Gate in log mode, as before.",
+   "lesson": "The gentler night fixed the collapse for both arms. Day 5, older modules: sdft 8% -> 67%, sft 38% -> 92%; sdft reasoning on day 5 57% -> 83%; no more garbled code (unparseable answers on day 5: sdft 8 -> 0, sft 13 -> 0). 10-day mean on all modules: sft 59% -> 84%, sdft 52% -> 67%. Gradients stayed small (sdft's largest norm per night 0.4-2.1). But sft still beats sdft: sft v2 nearly matches docs-in-prompt (rag 86%) closed-book and generalizes better to never-practiced task types (61% vs 48%), while sdft's reasoning stays a bit lower (73-93% vs base 80%). Eval sets are small (6 to 60 tasks a day).",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+   "arms": {
+    "base": [
+     {
+      "day": 1,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": null,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 6,
+      "would_reject": null
+     },
+     {
+      "day": 2,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 12,
+      "would_reject": null
+     },
+     {
+      "day": 3,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 18,
+      "would_reject": null
+     },
+     {
+      "day": 4,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 24,
+      "would_reject": null
+     },
+     {
+      "day": 5,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 30,
+      "would_reject": null
+     },
+     {
+      "day": 6,
+      "all_acc": 0.0,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 36,
+      "would_reject": null
+     },
+     {
+      "day": 7,
+      "all_acc": 0.0714,
+      "new_module_acc": 0.5,
+      "retention_acc": 0.0,
+      "unseen_family_acc": 0.1429,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 42,
+      "would_reject": null
+     },
+     {
+      "day": 8,
+      "all_acc": 0.1042,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.0714,
+      "unseen_family_acc": 0.125,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 48,
+      "would_reject": null
+     },
+     {
+      "day": 9,
+      "all_acc": 0.0926,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.1042,
+      "unseen_family_acc": 0.1111,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 54,
+      "would_reject": null
+     },
+     {
+      "day": 10,
+      "all_acc": 0.1,
+      "new_module_acc": 0.0,
+      "retention_acc": 0.1111,
+      "unseen_family_acc": 0.1,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 60,
+      "would_reject": null
+     }
+    ],
+    "rag": [
+     {
+      "day": 1,
+      "all_acc": 1.0,
+      "new_module_acc": 1.0,
+      "retention_acc": null,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 190.0,
+      "n": 6,
+      "would_reject": null
+     },
+     {
+      "day": 2,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 1.0,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 366.0,
+      "n": 12,
+      "would_reject": null
+     },
+     {
+      "day": 3,
+      "all_acc": 0.9444,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.9167,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 467.0,
+      "n": 18,
+      "would_reject": null
+     },
+     {
+      "day": 4,
+      "all_acc": 0.8333,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.7778,
+      "unseen_family_acc": 0.75,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 581.0,
+      "n": 24,
+      "would_reject": null
+     },
+     {
+      "day": 5,
+      "all_acc": 0.8667,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8333,
+      "unseen_family_acc": 0.8,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 739.0,
+      "n": 30,
+      "would_reject": null
+     },
+     {
+      "day": 6,
+      "all_acc": 0.8333,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8,
+      "unseen_family_acc": 0.8333,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 845.0,
+      "n": 36,
+      "would_reject": null
+     },
+     {
+      "day": 7,
+      "all_acc": 0.9048,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8889,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 934.0,
+      "n": 42,
+      "would_reject": null
+     },
+     {
+      "day": 8,
+      "all_acc": 0.7917,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.8571,
+      "unseen_family_acc": 0.75,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 1068.0,
+      "n": 48,
+      "would_reject": null
+     },
+     {
+      "day": 9,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.8542,
+      "unseen_family_acc": 0.8889,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 1213.0,
+      "n": 54,
+      "would_reject": null
+     },
+     {
+      "day": 10,
+      "all_acc": 0.7667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.7778,
+      "unseen_family_acc": 0.8,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 1319.0,
+      "n": 60,
+      "would_reject": null
+     }
+    ],
+    "sft": [
+     {
+      "day": 1,
+      "all_acc": 1.0,
+      "new_module_acc": 1.0,
+      "retention_acc": null,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.9667,
+      "memory_tokens": 0.0,
+      "n": 6,
+      "would_reject": false
+     },
+     {
+      "day": 2,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 1.0,
+      "unseen_family_acc": 0.5,
+      "reasoning_acc": 0.9,
+      "memory_tokens": 0.0,
+      "n": 12,
+      "would_reject": false
+     },
+     {
+      "day": 3,
+      "all_acc": 1.0,
+      "new_module_acc": 1.0,
+      "retention_acc": 1.0,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 18,
+      "would_reject": false
+     },
+     {
+      "day": 4,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.8889,
+      "unseen_family_acc": 0.5,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 24,
+      "would_reject": false
+     },
+     {
+      "day": 5,
+      "all_acc": 0.8667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.9167,
+      "unseen_family_acc": 0.6,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 30,
+      "would_reject": false
+     },
+     {
+      "day": 6,
+      "all_acc": 0.7222,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.8,
+      "unseen_family_acc": 0.3333,
+      "reasoning_acc": 0.8333,
+      "memory_tokens": 0.0,
+      "n": 36,
+      "would_reject": false
+     },
+     {
+      "day": 7,
+      "all_acc": 0.8571,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.8333,
+      "unseen_family_acc": 0.5714,
+      "reasoning_acc": 0.9333,
+      "memory_tokens": 0.0,
+      "n": 42,
+      "would_reject": false
+     },
+     {
+      "day": 8,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.8571,
+      "unseen_family_acc": 0.5,
+      "reasoning_acc": 1.0,
+      "memory_tokens": 0.0,
+      "n": 48,
+      "would_reject": false
+     },
+     {
+      "day": 9,
+      "all_acc": 0.7037,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.7083,
+      "unseen_family_acc": 0.4444,
+      "reasoning_acc": 0.9667,
+      "memory_tokens": 0.0,
+      "n": 54,
+      "would_reject": true
+     },
+     {
+      "day": 10,
+      "all_acc": 0.8,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.8148,
+      "unseen_family_acc": 0.7,
+      "reasoning_acc": 0.9333,
+      "memory_tokens": 0.0,
+      "n": 60,
+      "would_reject": false
+     }
+    ],
+    "sdft": [
+     {
+      "day": 1,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": null,
+      "unseen_family_acc": 1.0,
+      "reasoning_acc": 0.8333,
+      "memory_tokens": 0.0,
+      "n": 6,
+      "would_reject": false
+     },
+     {
+      "day": 2,
+      "all_acc": 0.3333,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.3333,
+      "unseen_family_acc": 0.0,
+      "reasoning_acc": 0.7667,
+      "memory_tokens": 0.0,
+      "n": 12,
+      "would_reject": false
+     },
+     {
+      "day": 3,
+      "all_acc": 0.7778,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.6667,
+      "unseen_family_acc": 0.6667,
+      "reasoning_acc": 0.7333,
+      "memory_tokens": 0.0,
+      "n": 18,
+      "would_reject": false
+     },
+     {
+      "day": 4,
+      "all_acc": 0.8333,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.8889,
+      "unseen_family_acc": 0.75,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 24,
+      "would_reject": false
+     },
+     {
+      "day": 5,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.6667,
+      "unseen_family_acc": 0.4,
+      "reasoning_acc": 0.8333,
+      "memory_tokens": 0.0,
+      "n": 30,
+      "would_reject": true
+     },
+     {
+      "day": 6,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.3333,
+      "retention_acc": 0.7333,
+      "unseen_family_acc": 0.3333,
+      "reasoning_acc": 0.8333,
+      "memory_tokens": 0.0,
+      "n": 36,
+      "would_reject": false
+     },
+     {
+      "day": 7,
+      "all_acc": 0.7619,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.7222,
+      "unseen_family_acc": 0.5714,
+      "reasoning_acc": 0.9,
+      "memory_tokens": 0.0,
+      "n": 42,
+      "would_reject": false
+     },
+     {
+      "day": 8,
+      "all_acc": 0.6667,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.6667,
+      "unseen_family_acc": 0.25,
+      "reasoning_acc": 0.8,
+      "memory_tokens": 0.0,
+      "n": 48,
+      "would_reject": false
+     },
+     {
+      "day": 9,
+      "all_acc": 0.7407,
+      "new_module_acc": 1.0,
+      "retention_acc": 0.7083,
+      "unseen_family_acc": 0.4444,
+      "reasoning_acc": 0.8333,
+      "memory_tokens": 0.0,
+      "n": 54,
+      "would_reject": false
+     },
+     {
+      "day": 10,
+      "all_acc": 0.6,
+      "new_module_acc": 0.6667,
+      "retention_acc": 0.5926,
+      "unseen_family_acc": 0.4,
+      "reasoning_acc": 0.9333,
+      "memory_tokens": 0.0,
+      "n": 60,
+      "would_reject": true
+     }
+    ]
+   },
+   "merged_from": {
+    "base": [
+     {
+      "source": "full-coder7b-v1",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ],
+    "rag": [
+     {
+      "source": "full-v2-rag",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ],
+    "sft": [
+     {
+      "source": "full-v3-sft",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ],
+    "sdft": [
+     {
+      "source": "full-v3-sdft",
+      "days": [
+       1,
+       10
+      ]
+     }
+    ]
+   },
+   "arm_config": {
+    "base": {
+     "lr": 0.0005,
+     "epochs": 5,
+     "grad_accum": 2,
+     "lr_schedule": null,
+     "warmup_frac": null,
+     "lora_r": 16,
+     "gate": "log"
+    },
+    "rag": {
+     "lr": 0.0005,
+     "epochs": 5,
+     "grad_accum": 2,
+     "lr_schedule": null,
+     "warmup_frac": null,
+     "lora_r": 16,
+     "gate": "log"
+    },
+    "sft": {
+     "lr": 0.0002,
+     "epochs": 3,
+     "grad_accum": 2,
+     "lr_schedule": "cosine",
+     "warmup_frac": 0.1,
+     "lora_r": 16,
+     "gate": "log"
+    },
+    "sdft": {
+     "lr": 0.0002,
+     "epochs": 3,
+     "grad_accum": 2,
+     "lr_schedule": "cosine",
+     "warmup_frac": 0.1,
+     "lora_r": 16,
+     "gate": "log"
+    }
+   },
+   "base_reasoning": 0.8666666666666667
+  },
+  {
+   "id": "v1-vs-v2",
+   "kind": "versus",
+   "hardware": "Modal, NVIDIA A100 80GB",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+   "rows": [
+    {
+     "arm": "sft",
+     "ver": "v1",
+     "cfg": {
+      "lr": 0.0005,
+      "epochs": 5,
+      "lr_schedule": null
+     },
+     "all": [
+      0.6667,
+      0.6667,
+      0.6667,
+      0.75,
+      0.4333,
+      0.5,
+      0.4762,
+      0.5,
+      0.7037,
+      0.5667
+     ],
+     "old": [
+      null,
+      0.6667,
+      0.6667,
+      0.7778,
+      0.375,
+      0.5333,
+      0.4444,
+      0.4762,
+      0.7083,
+      0.5926
+     ],
+     "unseen": [
+      0.0,
+      0.0,
+      0.0,
+      0.25,
+      0.2,
+      0.1667,
+      0.0,
+      0.0,
+      0.2222,
+      0.1
+     ],
+     "reasoning": [
+      1.0,
+      0.9333,
+      1.0,
+      1.0,
+      0.9333,
+      0.8667,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "loss": [
+      [
+       0.49954724311828613,
+       7.486607501050457e-06
+      ],
+      [
+       1.0459452867507935,
+       2.2021427867002785e-05
+      ],
+      [
+       0.2214660942554474,
+       0.0033319019712507725
+      ],
+      [
+       0.20802660286426544,
+       0.00026693279505707324
+      ],
+      [
+       0.06250355392694473,
+       9.315199713455513e-05
+      ],
+      [
+       0.5029914975166321,
+       2.1299973013810813e-05
+      ],
+      [
+       0.23941189050674438,
+       9.889164357446134e-05
+      ],
+      [
+       0.42135846614837646,
+       0.0001804466446628794
+      ],
+      [
+       0.09113738685846329,
+       0.00010768078936962411
+      ],
+      [
+       5.113941733725369e-05,
+       6.493609544122592e-05
+      ]
+     ],
+     "grad_max": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "grad_mean": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "flagged": 2,
+     "day5_syntax": 13
+    },
+    {
+     "arm": "sft",
+     "ver": "v2",
+     "cfg": {
+      "lr": 0.0002,
+      "epochs": 3,
+      "grad_accum": 2,
+      "lr_schedule": "cosine",
+      "warmup_frac": 0.1,
+      "lora_r": 16,
+      "gate": "log"
+     },
+     "all": [
+      1.0,
+      0.8333,
+      1.0,
+      0.8333,
+      0.8667,
+      0.7222,
+      0.8571,
+      0.8333,
+      0.7037,
+      0.8
+     ],
+     "old": [
+      null,
+      1.0,
+      1.0,
+      0.8889,
+      0.9167,
+      0.8,
+      0.8333,
+      0.8571,
+      0.7083,
+      0.8148
+     ],
+     "unseen": [
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      0.6,
+      0.3333,
+      0.5714,
+      0.5,
+      0.4444,
+      0.7
+     ],
+     "reasoning": [
+      0.9667,
+      0.9,
+      1.0,
+      1.0,
+      1.0,
+      0.8333,
+      0.9333,
+      1.0,
+      0.9667,
+      0.9333
+     ],
+     "loss": [
+      [
+       0.49954724311828613,
+       6.342939741443843e-05
+      ],
+      [
+       1.1792042255401611,
+       0.003935737535357475
+      ],
+      [
+       0.40392136573791504,
+       5.812364906887524e-05
+      ],
+      [
+       5.5299395171459764e-05,
+       0.0028070048429071903
+      ],
+      [
+       5.468774907058105e-05,
+       6.559377652592957e-05
+      ],
+      [
+       0.6590636968612671,
+       0.0006677889032289386
+      ],
+      [
+       0.08897095918655396,
+       0.00018891034414991736
+      ],
+      [
+       0.0012266881531104445,
+       1.2836294445150997e-05
+      ],
+      [
+       0.11433270573616028,
+       0.00015696744958404452
+      ],
+      [
+       0.00015616469318047166,
+       0.00013562147796619684
+      ]
+     ],
+     "grad_max": [
+      3.2097,
+      5.4603,
+      1.2619,
+      1.5557,
+      1.265,
+      1.4906,
+      1.6761,
+      0.7735,
+      2.0639,
+      2.6166
+     ],
+     "grad_mean": [
+      0.2411,
+      0.3662,
+      0.1267,
+      0.1054,
+      0.1337,
+      0.1405,
+      0.1965,
+      0.0915,
+      0.2105,
+      0.1716
+     ],
+     "flagged": 1,
+     "day5_syntax": 0
+    },
+    {
+     "arm": "sdft",
+     "ver": "v1",
+     "cfg": {
+      "lr": 0.0005,
+      "epochs": 5,
+      "lr_schedule": null
+     },
+     "all": [
+      1.0,
+      0.25,
+      0.4444,
+      0.75,
+      0.2667,
+      0.4722,
+      0.6667,
+      0.3333,
+      0.5,
+      0.5167
+     ],
+     "old": [
+      null,
+      0.1667,
+      0.5,
+      0.7778,
+      0.0833,
+      0.4333,
+      0.6667,
+      0.2857,
+      0.4792,
+      0.537
+     ],
+     "unseen": [
+      1.0,
+      0.0,
+      0.0,
+      0.5,
+      0.2,
+      0.3333,
+      0.4286,
+      0.0,
+      0.2222,
+      0.3
+     ],
+     "reasoning": [
+      0.9667,
+      0.9,
+      0.8,
+      0.7667,
+      0.5667,
+      0.7333,
+      1.0,
+      0.8667,
+      0.9667,
+      1.0
+     ],
+     "loss": [
+      [
+       0.3593197464942932,
+       0.019652629271149635
+      ],
+      [
+       0.4545172154903412,
+       0.014381044544279575
+      ],
+      [
+       0.4149586260318756,
+       0.009547100402414799
+      ],
+      [
+       0.0031298331450670958,
+       0.01859314553439617
+      ],
+      [
+       0.004317921120673418,
+       0.14366841316223145
+      ],
+      [
+       1.313169240951538,
+       0.00588459987193346
+      ],
+      [
+       0.06968963146209717,
+       0.004303777124732733
+      ],
+      [
+       0.008798924274742603,
+       0.050214946269989014
+      ],
+      [
+       0.007240607403218746,
+       0.03708852455019951
+      ],
+      [
+       1.3106791973114014,
+       0.06781977415084839
+      ]
+     ],
+     "grad_max": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "grad_mean": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "flagged": 5,
+     "day5_syntax": 8
+    },
+    {
+     "arm": "sdft",
+     "ver": "v2",
+     "cfg": {
+      "lr": 0.0002,
+      "epochs": 3,
+      "grad_accum": 2,
+      "lr_schedule": "cosine",
+      "warmup_frac": 0.1,
+      "lora_r": 16,
+      "gate": "log"
+     },
+     "all": [
+      0.6667,
+      0.3333,
+      0.7778,
+      0.8333,
+      0.6667,
+      0.6667,
+      0.7619,
+      0.6667,
+      0.7407,
+      0.6
+     ],
+     "old": [
+      null,
+      0.3333,
+      0.6667,
+      0.8889,
+      0.6667,
+      0.7333,
+      0.7222,
+      0.6667,
+      0.7083,
+      0.5926
+     ],
+     "unseen": [
+      1.0,
+      0.0,
+      0.6667,
+      0.75,
+      0.4,
+      0.3333,
+      0.5714,
+      0.25,
+      0.4444,
+      0.4
+     ],
+     "reasoning": [
+      0.8333,
+      0.7667,
+      0.7333,
+      0.8,
+      0.8333,
+      0.8333,
+      0.9,
+      0.8,
+      0.8333,
+      0.9333
+     ],
+     "loss": [
+      [
+       0.3593197464942932,
+       0.07721766084432602
+      ],
+      [
+       0.2326233983039856,
+       0.0015622848877683282
+      ],
+      [
+       0.13973955810070038,
+       0.01600385271012783
+      ],
+      [
+       0.00750644039362669,
+       0.1761287897825241
+      ],
+      [
+       0.23235923051834106,
+       0.022955944761633873
+      ],
+      [
+       0.14236968755722046,
+       0.0038353262934833765
+      ],
+      [
+       0.01780678518116474,
+       0.0006385776796378195
+      ],
+      [
+       0.16480492055416107,
+       0.012391363270580769
+      ],
+      [
+       0.06988213211297989,
+       0.00015907529450487345
+      ],
+      [
+       0.039125047624111176,
+       0.0026065546553581953
+      ]
+     ],
+     "grad_max": [
+      1.8363,
+      1.4238,
+      1.3607,
+      2.136,
+      1.0618,
+      0.4469,
+      1.0424,
+      1.3622,
+      1.3578,
+      1.1766
+     ],
+     "grad_mean": [
+      0.4242,
+      0.2956,
+      0.3488,
+      0.3734,
+      0.2539,
+      0.1616,
+      0.1972,
+      0.1481,
+      0.2533,
+      0.309
+     ],
+     "flagged": 2,
+     "day5_syntax": 0
+    }
+   ],
+   "title": "Before and after: did gentler nights stop the day-5 collapse?",
+   "what": "Same tasks, same seed, same teacher; only the nightly update changed (v1: lr 5e-4 x 5 passes, constant LR; v2: lr 2e-4 x 3 passes, cosine decay). Score on held-out tasks from every module so far.",
+   "lesson": "The gentler night fixed the collapse for both arms. Day 5, older modules: sdft 8% -> 67%, sft 38% -> 92%; sdft reasoning on day 5 57% -> 83%; no more garbled code (unparseable answers on day 5: sdft 8 -> 0, sft 13 -> 0). 10-day mean on all modules: sft 59% -> 84%, sdft 52% -> 67%. Gradients stayed small (sdft's largest norm per night 0.4-2.1). But sft still beats sdft: sft v2 nearly matches docs-in-prompt (rag 86%) closed-book and generalizes better to never-practiced task types (61% vs 48%), while sdft's reasoning stays a bit lower (73-93% vs base 80%). Eval sets are small (6 to 60 tasks a day)."
   }
  ],
- "next": "Next: a gentler nightly update (lower lr, fewer passes, LR decay). Older modules are already in each night's training (via practice), and on day 5 that didn't stop the collapse; the update itself did the damage."
+ "next": "Next: a larger eval set (6 to 60 tasks a day is too few to separate close arms), then work out why on-policy sdft still trails plain sft here."
 }

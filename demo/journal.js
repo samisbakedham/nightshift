@@ -69,7 +69,7 @@
   }
 
   function status(j) {
-    const full = j.runs.find((x) => x.kind === "full");
+    const full = [...j.runs].reverse().find((x) => x.kind === "full");
     if (full && ARMS.every(([a]) => full.arms[a] && full.arms[a].length >= 10)) return statusFull(full, j);
     const r = [...j.runs].reverse().find((x) => x.kind !== "compare" && x.kind !== "full");
     const base = lastDay(r, "base"), rag = lastDay(r, "rag");
@@ -97,9 +97,39 @@
       ${(() => { const w = f.arms.sdft.reduce((a, b) => (b.reasoning_acc < a.reasoning_acc ? b : a));
         return tile(P(w.reasoning_acc), "sdft reasoning, worst day", `day ${w.day}; day 1 ${P(f.arms.sdft[0].reasoning_acc)} → day 10 ${P(s.reasoning_acc)}`, "c-bad"); })()}
     </div>
-    <p class="sub">Full run: ${esc(f.model)} on ${esc(f.hardware)}, 10 simulated days, one new tessel module per day.
+    <p class="sub">Latest full run, <b>${esc(f.title.split(":")[0])}</b>: ${esc(f.title.split(":").slice(1).join(":").trim())}.
+      ${esc(f.model)} on ${esc(f.hardware)}, 10 simulated days, one new tessel module per day.
       Retention on older modules at day 10: ${ARMS.map(([a]) => `${a} ${P(d10(a).retention_acc)}`).join(" · ")}.
       ${esc(j.next)}</p>`;
+  }
+
+  function versusEntry(r, i) {
+    const mean = (xs) => { const v = xs.filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+    const cell = (arm, v) => `<td style="background:color-mix(in srgb, var(--${arm}) ${Math.round(12 + (v ?? 0) * 70)}%, transparent)">${P(v)}</td>`;
+    const name = (x) => `<th style="color:var(--${x.arm})">${x.arm} ${x.ver}</th>`;
+    const head = `<tr><th></th>${x10((d) => `<th>D${d}</th>`)}<th>mean</th></tr>`;
+    function x10(f) { return Array.from({ length: 10 }, (_, k) => f(k + 1)).join(""); }
+    const curve = (key) => `<div class="sb"><table>${head}${r.rows.map((x) => `<tr>${name(x)}${x[key].map((v) => cell(x.arm, v)).join("")}` +
+      `<td><b>${P(mean(x[key]))}</b></td></tr>`).join("")}</table></div>`;
+    const f3 = (v) => (v == null ? "–" : v.toFixed(3));
+    const d5 = `<div class="sb"><table><tr><th></th><th>older modules</th><th>reasoning</th><th>unparseable answers</th><th>night-5 loss first → last</th><th>nights flagged (of 10)</th></tr>` +
+      r.rows.map((x) => `<tr>${name(x)}<td>${P(x.old[4])}</td><td>${P(x.reasoning[4])}</td><td>${x.day5_syntax}</td>` +
+        `<td>${f3(x.loss[4][0])} → ${f3(x.loss[4][1])}</td><td>${x.flagged}</td></tr>`).join("") + `</table></div>`;
+    const gn = r.rows.filter((x) => x.grad_max.some((v) => v != null));
+    const grads = gn.length ? `<div class="h3">Gradient norm per night (v2, logged every step): largest / average, before clipping at 1.0</div>
+      <div class="sb"><table><tr><th></th>${x10((d) => `<th>N${d}</th>`)}</tr>${gn.map((x) => `<tr>${name(x)}` +
+        x.grad_max.map((v, k) => `<td>${v == null ? "–" : v.toFixed(2)}<br><span class="sub">${x.grad_mean[k] == null ? "" : x.grad_mean[k].toFixed(2)}</span></td>`).join("") + `</tr>`).join("")}</table></div>` : "";
+    return `<article class="entry hl-entry">
+      <div class="num">${String(i + 1).padStart(2, "0")}</div>
+      <div class="body">
+        <div class="eh"><h3>${esc(r.title)}</h3><div class="sub">${esc(r.model)} · ${esc(r.hardware)}</div></div>
+        <p>${esc(r.what)}</p>
+        <div class="h3">All modules so far, day 1 → 10</div>${curve("all")}
+        <div class="h3">Older modules only (forgetting check)</div>${curve("old")}
+        <div class="h3">Day 5, the night v1 collapsed</div>${d5}
+        ${grads}
+        ${r.lesson ? `<div class="lesson"><b>Takeaway.</b> ${esc(r.lesson)}</div>` : ""}
+      </div></article>`;
   }
 
   function compareEntry(r, i) {
@@ -126,6 +156,7 @@
     $("journal").innerHTML = j.runs.map((r, i) => {
       if (r.kind === "compare") return compareEntry(r, i);
       if (r.kind === "full") return fullEntry(r, i);
+      if (r.kind === "versus") return versusEntry(r, i);
       const types = r.teacher_by_type.filter((t) => t.n);
       const showTypes = types.some((t) => t.pass < t.n) && types.some((t) => t.pass > 0);
       const typeBars = showTypes ? `<div class="h3">Teacher by task type</div>` + bars(types.map((t) => ({

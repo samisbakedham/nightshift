@@ -14,6 +14,7 @@ Engines:
 from __future__ import annotations
 
 import copy
+import math
 import random
 from contextlib import nullcontext
 
@@ -145,9 +146,47 @@ class HFPolicy(Policy):
         out = self.model(input_ids=seq).logits[0]
         return completion_logits(out, len(prompt_ids), len(comp_ids))
 
-    def _opt(self):
+    def _opt(self, cfg=None, total_steps: int = 0):
+        """Fresh AdamW for one night, plus its LR schedule (see Config.lr_schedule)."""
         params = [p for p in self.model.parameters() if p.requires_grad]
-        return torch.optim.AdamW(params, lr=self.lr, weight_decay=0.0)
+        opt = torch.optim.AdamW(params, lr=self.lr, weight_decay=0.0)
+        kind = getattr(cfg, "lr_schedule", "constant")
+        if kind == "constant" or total_steps <= 0:
+            sched = None
+        elif kind == "cosine":
+            warm = max(1, round(getattr(cfg, "warmup_frac", 0.1) * total_steps))
+            def f(step):  # step = number of optimizer steps already taken
+                if step < warm:
+                    return (step + 1) / warm
+                prog = (step - warm) / max(1, total_steps - warm)
+                return 0.5 * (1 + math.cos(math.pi * min(1.0, prog)))
+            sched = torch.optim.lr_scheduler.LambdaLR(opt, f)
+        else:
+            raise ValueError(f"unknown lr_schedule {kind!r}")
+        return opt, sched
+
+    def _step(self, opt, sched, log: dict):
+        """Clip, record the pre-clip grad norm and LR, step the optimizer and schedule."""
+        norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+        log["grad_norms"].append(round(float(norm), 4))
+        log["lrs"].append(opt.param_groups[0]["lr"])
+        opt.step()
+        opt.zero_grad()
+        if sched:
+            sched.step()
+
+    @staticmethod
+    def _night_steps(n_items: int, cfg) -> int:
+        return cfg.epochs * -(-n_items // cfg.grad_accum)
+
+    @staticmethod
+    def _grad_summary(log: dict) -> dict:
+        g = log["grad_norms"]
+        if not g:
+            return {"grad_norms": [], "lrs": []}
+        return {"grad_norms": g, "lrs": [float(f"{x:.3g}") for x in log["lrs"]],
+                "grad_norm_mean": round(sum(g) / len(g), 4), "grad_norm_max": max(g),
+                "grad_norm_clipped": sum(x > 1.0 for x in g), "lr_peak": max(log["lrs"])}
 
     def train_sdft(self, items: list[TrainItem], cfg) -> dict:
         """On-policy self-distillation.
@@ -158,7 +197,8 @@ class HFPolicy(Policy):
         with docs + lessons), via token_kl. Replay items use the plain prompt for
         the teacher too, which anchors general behavior to the base model.
         """
-        opt = self._opt()
+        opt, sched = self._opt(cfg, self._night_steps(len(items), cfg))
+        glog = {"grad_norms": [], "lrs": []}
         losses, n_tok, opt_steps = [], 0, 0
         for epoch in range(cfg.epochs):
             order = list(range(len(items)))
@@ -180,17 +220,17 @@ class HFPolicy(Policy):
                 losses.append(loss.item())
                 n_tok += len(y)
                 if step % cfg.grad_accum == 0 or step == len(order):
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
-                    opt.step()
-                    opt.zero_grad()
+                    self._step(opt, sched, glog)
                     opt_steps += 1
         return {"steps": len(losses), "opt_steps": opt_steps, "loss_first": losses[0] if losses else None,
                 "loss_last": losses[-1] if losses else None,
-                "loss_mean": sum(losses) / len(losses) if losses else None, "tokens": n_tok}
+                "loss_mean": sum(losses) / len(losses) if losses else None, "tokens": n_tok,
+                **self._grad_summary(glog)}
 
     def train_sft(self, items: list[TrainItem], cfg) -> dict:
         """Plain supervised fine-tuning: cross-entropy on given target texts."""
-        opt = self._opt()
+        opt, sched = self._opt(cfg, self._night_steps(len(items), cfg))
+        glog = {"grad_norms": [], "lrs": []}
         losses, opt_steps = [], 0
         self.model.train()
         for epoch in range(cfg.epochs):
@@ -205,13 +245,11 @@ class HFPolicy(Policy):
                 (loss / cfg.grad_accum).backward()
                 losses.append(loss.item())
                 if step % cfg.grad_accum == 0 or step == len(order):
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
-                    opt.step()
-                    opt.zero_grad()
+                    self._step(opt, sched, glog)
                     opt_steps += 1
         return {"steps": len(losses), "opt_steps": opt_steps, "loss_first": losses[0] if losses else None,
                 "loss_last": losses[-1] if losses else None,
-                "loss_mean": sum(losses) / len(losses) if losses else None}
+                "loss_mean": sum(losses) / len(losses) if losses else None, **self._grad_summary(glog)}
 
     # ------------------------------------------------------------------ checkpoints
     def snapshot(self):

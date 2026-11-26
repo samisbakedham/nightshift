@@ -1,0 +1,29 @@
+
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]
+Loading weights:  11%|█         | 37/339 [00:00<00:00, 336.69it/s]
+Loading weights:  21%|██        | 71/339 [00:01<00:07, 36.76it/s] 
+Loading weights:  30%|██▉       | 101/339 [00:01<00:04, 55.90it/s]
+Loading weights:  36%|███▌      | 121/339 [00:01<00:03, 70.06it/s]
+Loading weights:  45%|████▌     | 154/339 [00:02<00:01, 100.59it/s]
+Loading weights:  52%|█████▏    | 177/339 [00:04<00:06, 26.24it/s] 
+Loading weights:  57%|█████▋    | 192/339 [00:04<00:05, 27.22it/s]
+Loading weights:  63%|██████▎   | 215/339 [00:05<00:03, 36.48it/s]
+Loading weights:  72%|███████▏  | 244/339 [00:05<00:01, 52.98it/s]
+Loading weights:  81%|████████▏ | 276/339 [00:05<00:00, 76.03it/s]
+Loading weights:  88%|████████▊ | 299/339 [00:05<00:00, 92.94it/s]
+Loading weights: 100%|██████████| 339/339 [00:05<00:00, 60.88it/s]
+[engine] Qwen/Qwen2.5-Coder-7B-Instruct: {'device': 'cuda', 'base_dtype': 'torch.bfloat16', 'lora_dtype': 'torch.float32', 'gen_batch': 32, 'trainable_params': 40370176}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+09:33:08 base gate: {'old_modules': None, 'reasoning': 0.8666666666666667}  (gate mode: log)
+09:35:14 [sft] day 1: new=1.0 retention=None all=1.0 unseen=1.0 reasoning=0.9667 mem_tokens=0.0 gate=ok
+09:37:07 [sft] day 2: new=0.6667 retention=1.0 all=0.8333 unseen=0.5 reasoning=0.9 mem_tokens=0.0 gate=ok
+09:39:11 [sft] day 3: new=1.0 retention=1.0 all=1.0 unseen=1.0 reasoning=1.0 mem_tokens=0.0 gate=ok
+09:41:20 [sft] day 4: new=0.6667 retention=0.8889 all=0.8333 unseen=0.5 reasoning=1.0 mem_tokens=0.0 gate=ok
+09:43:31 [sft] day 5: new=0.6667 retention=0.9167 all=0.8667 unseen=0.6 reasoning=1.0 mem_tokens=0.0 gate=ok
+09:45:56 [sft] day 6: new=0.3333 retention=0.8 all=0.7222 unseen=0.3333 reasoning=0.8333 mem_tokens=0.0 gate=ok
+09:48:31 [sft] day 7: new=1.0 retention=0.8333 all=0.8571 unseen=0.5714 reasoning=0.9333 mem_tokens=0.0 gate=ok
+09:51:14 [sft] day 8: new=0.6667 retention=0.8571 all=0.8333 unseen=0.5 reasoning=1.0 mem_tokens=0.0 gate=ok
+09:53:51 [sft] day 9: new=0.6667 retention=0.7083 all=0.7037 unseen=0.4444 reasoning=0.9667 mem_tokens=0.0 gate=WOULD-ROLLBACK(logged)
+09:56:02 [sft] day 10: new=0.6667 retention=0.8148 all=0.8 unseen=0.7 reasoning=0.9333 mem_tokens=0.0 gate=ok
+
+wrote /vol/runs/full-v3-sft/run_artifacts.json and traces.jsonl

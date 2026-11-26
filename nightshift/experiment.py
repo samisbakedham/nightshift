@@ -56,6 +56,10 @@ class Config:
     epochs: int = 5
     grad_accum: int = 2
     lr: float = 5e-4
+    # per-night LR schedule: "constant" (v1 runs) or "cosine" = linear warmup over warmup_frac of the night's
+    # optimizer steps, then cosine decay to 0, so the adapter settles instead of overshooting on late passes.
+    lr_schedule: str = "constant"
+    warmup_frac: float = 0.1
     lora_r: int = 16
     rollout_temperature: float = 1.0
     max_new_tokens: int = 384

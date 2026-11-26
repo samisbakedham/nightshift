@@ -46,7 +46,7 @@ after one night with no docs in its prompt, including the task type it never tra
 reasoning stayed intact (80% base, 93% after). lr 1e-3 over-learned (8/12, unseen 0/4). Full story, charts and the exact code:
 the demo page's lab notebook (`demo/`, data in `results/`, built by `scripts/build_journal.py`).
 
-### The full 10 days (Coder-7B, A100, tuned night, gate in log mode)
+### v1: the full 10 days (Coder-7B, A100, lr 5e-4 × 5 passes, constant LR, gate in log mode)
 
 Score on held-out tasks from every module released so far (6 tasks on day 1, up to 60 on day 10):
 
@@ -76,6 +76,29 @@ comes from `full-coder7b-v1`, which Modal cancelled after 15 minutes for an unkn
 was re-run in full, matched v1's days 1–9 exactly, and is taken from the re-run. Merged with `scripts/merge_runs.py`; provenance is in
 `meta.merged_from`. Data: `results/full-coder7b/`.
 
+### v2: gentler nights (lr 2e-4 × 3 passes, per-night cosine decay after 10% warmup)
+
+Rematch for sft and sdft only, identical settings for both, gradient norms logged every step, gate in log mode.
+base and rag don't train, so their curves are reused from v1. Data: `results/full-coder7b-v2/` (each arm's
+settings in `meta.arm_config`).
+
+| arm | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 | D10 | mean | v1 mean |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| base (no docs) | 0% | 0% | 0% | 0% | 0% | 0% | 7% | 10% | 9% | 10% | 4% | |
+| rag (docs in prompt) | 100% | 83% | 94% | 83% | 87% | 83% | 90% | 79% | 83% | 77% | 86% | |
+| sft | 100% | 83% | 100% | 83% | 87% | 72% | 86% | 83% | 70% | 80% | **84%** | 59% |
+| sdft | 67% | 33% | 78% | 83% | 67% | 67% | 76% | 67% | 74% | 60% | **67%** | 52% |
+
+10-day means, v2 (v1): older modules sft 87% (58%), sdft 66% (44%); never-practiced task types sft 61% (9%),
+sdft 48% (30%); reasoning sft 95% (97%), sdft 83% (86%), base 80%.
+
+**Reading.** The gentler night removed the day-5 collapse in both arms. Day 5, older modules: sdft 8% → 67%,
+sft 38% → 92%; sdft reasoning 57% → 83%; unparseable answers on day 5: sdft 8 → 0, sft 13 → 0. sdft's largest
+gradient norm per night stayed between 0.4 and 2.1. But sft still beats sdft: closed-book, sft v2 is close to
+docs-in-prompt (84% vs 86%) and generalizes better to task types it never practiced (61% vs 48%). Eval sets are
+small (6–60 tasks a day), so differences of a few points are noise. Next: a larger eval set, then work out why
+on-policy sdft trails sft here.
+
 ## The four arms
 
 All arms start from the same weights, get the same daily releases and are scored on the same
@@ -99,7 +122,8 @@ off) with docs + promoted lessons in context. So `sft` vs `sdft` isolates the le
 (chosen by day). `sdft` samples its own answers and is pulled toward the frozen base model's
 distribution (token-level KL, no docs on either side). `sft` trains with cross-entropy on the frozen
 base model's answers to those prompts, keeping only the ones graded correct. Both train only on
-teacher-verified tasks, skip a night when the teacher verified nothing, and use the same 5 passes at lr 5e-4.
+teacher-verified tasks, skip a night when the teacher verified nothing, and use the same nightly update
+(v1: 5 passes at lr 5e-4, constant; v2: 3 passes at lr 2e-4, cosine decay, via `--epochs 3 --lr 2e-4 --lr-schedule cosine`).
 
 **Fairness:** the benchmark runs with `--gate log` (the default): updates are scored but never
 rolled back, so if `sft` forgets catastrophically, that shows up in the retention and reasoning
