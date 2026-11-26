@@ -109,7 +109,9 @@ class HFPolicy(Policy):
             L = max(map(len, chunk))
             ids = torch.tensor([[pad] * (L - len(p)) + p for p in chunk], device=self.device)
             att = torch.tensor([[0] * (L - len(p)) + [1] * len(p) for p in chunk], device=self.device)
-            kw = dict(do_sample=temperature > 0, max_new_tokens=max_new_tokens, pad_token_id=pad, eos_token_id=eos)
+            # repetition_penalty pinned to 1.0 so sampled rollouts come from the same distribution we distill on
+            kw = dict(do_sample=temperature > 0, max_new_tokens=max_new_tokens, pad_token_id=pad, eos_token_id=eos,
+                      repetition_penalty=1.0)
             if temperature > 0:
                 kw.update(temperature=temperature, top_p=1.0, top_k=0)
             with self._ctx(use_base):

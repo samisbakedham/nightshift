@@ -1,10 +1,12 @@
 """Turn release templates into concrete, gradeable tasks with disjoint splits.
 
-Splits are separated by seed range, so the same instance can never appear in
-both the held-out eval set and anything the model trains on:
+Two layers of separation:
 
-    eval      seeds [0, 1_000)          never trained on, never practiced
-    practice  seeds [1_000_000, ...)    daily work + self-curriculum
+  * Task FAMILIES: one template per module is held out. It appears only in eval,
+    never in practice, the gate, or training. Accuracy on these "unseen families"
+    is the headline number: the model has never seen that prompt text at all.
+  * Seeds: the eval, gate and practice instances of practiced families come from
+    disjoint seed ranges (eval [0, 1000), gate 500.., practice 1_000_000..).
 """
 
 from __future__ import annotations
@@ -35,6 +37,7 @@ class Task:
     preamble: str
     tests: list            # [[args_expr, expected_expr, post_expr], ...]
     ref: str               # reference solution. NEVER put in a model prompt.
+    heldout: bool = False  # from a task family the model never practices on
 
     def public(self):
         d = asdict(self)
@@ -61,6 +64,7 @@ def make_task(rel: Release, tpl: Template, seed: int, split: str) -> Task:
     return Task(
         id=f"{tpl.id}#{split}{seed}", template=tpl.id, module=rel.module, day=rel.day, split=split,
         seed=seed, prompt=spec["prompt"], preamble=rel.preamble, tests=tests, ref=spec["ref"],
+        heldout=tpl.heldout,
     )
 
 
@@ -83,6 +87,7 @@ class PracticeSource:
         self._next = PRACTICE_SEED_BASE
 
     def draw(self, rel: Release, tpl: Template) -> Task:
+        assert not tpl.heldout, f"{tpl.id} is held out and must never be practiced"
         self._next += 1
         return make_task(rel, tpl, self._next, "practice")
 
@@ -99,5 +104,6 @@ def template_by_id(tid: str) -> tuple[Release, Template]:
     raise KeyError(tid)
 
 
-def released_templates(day: int) -> list[tuple[Release, Template]]:
-    return [(r, t) for r in RELEASES if r.day <= day for t in r.templates]
+def released_templates(day: int, include_heldout: bool = False) -> list[tuple[Release, Template]]:
+    """Templates available for practice/gating. Held-out families are excluded unless asked."""
+    return [(r, t) for r in RELEASES if r.day <= day for t in r.templates if include_heldout or not t.heldout]

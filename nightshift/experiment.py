@@ -1,6 +1,7 @@
 """The 10-day experiment: day work -> lessons -> self-curriculum -> nightly update -> eval.
 
-Arms (all start from the same base weights, all see the same task stream):
+Arms (all start from the same base weights, the same day-by-day releases and the
+same held-out eval; the weakness-weighted half of practice adapts per arm):
   base   no memory, no training. The floor.
   rag    docs + lessons in the prompt every time. No training. The "memory only" ceiling.
   sft    closed-book student, nightly supervised fine-tuning on the teacher's
@@ -82,7 +83,9 @@ class Experiment:
         self.out = Path(cfg.out_dir)
         self.out.mkdir(parents=True, exist_ok=True)
         self.trace_f = open(self.out / "traces.jsonl", "w")
-        self.showcase_ids = {make_task(r, r.templates[0], 0, "eval").id for r in RELEASES}
+        # showcase = an UNSEEN-family task per module (prompt text never seen in practice)
+        self.showcase_ids = {make_task(r, next(t for t in r.templates if t.heldout), 0, "eval").id for r in RELEASES}
+        self.eval_prompts = {t.prompt for t in eval_set(10, cfg.eval_per_template)}
         self.showcase_traces: list[dict] = []
         self.results: dict = {}
 
@@ -125,8 +128,10 @@ class Experiment:
             msgs = closed
         outs, grades = self._solve(tasks, msgs)
         by_mod: dict[str, list[bool]] = {}
+        seen, unseen = [], []
         for t, m, o, g in zip(tasks, msgs, outs, grades):
             by_mod.setdefault(t.module, []).append(g.passed)
+            (unseen if t.heldout else seen).append(g.passed)
             self._trace(phase="eval", arm=st.name, day=day, task_id=t.id, module=t.module, messages=m,
                         output=o, grade=g.to_dict())
         # general reasoning (never gets memory)
@@ -148,6 +153,8 @@ class Experiment:
             "retention_acc": acc(old),
             "day1_module_acc": acc(by_mod["tessel.run"]),
             "all_acc": acc([p for v in by_mod.values() for p in v]),
+            "unseen_family_acc": acc(unseen),
+            "seen_family_acc": acc(seen),
             "reasoning_acc": acc(rok),
             "per_module": {m: acc(v) for m, v in by_mod.items()},
             "avg_prompt_tokens": round(tok_prompt, 1),
@@ -180,11 +187,14 @@ class Experiment:
         for k in range(cfg.authored_per_day):
             mod = st.curriculum.weakest_module(day)
             mrel = next(r for r in RELEASES if r.module == mod)
-            fallback = self._reg([st.source.draw(mrel, random.Random(day * 100 + k).choice(mrel.templates))])[0]
+            fallback = self._reg([st.source.draw(mrel, random.Random(day * 100 + k).choice(
+                [t for t in mrel.templates if not t.heldout]))])[0]
             msg = prompts.author_messages(mod, mrel.docs, "Target the parts of the API you find hardest.")
             [text] = self.policy.generate([Req(msg, "author", {"fallback_task_id": fallback.id})],
                                           temperature=0.7, max_new_tokens=cfg.max_new_tokens)
             task, why = accept_authored(text, mrel, f"{mod}.authored#d{day}k{k}:{st.name}", day)
+            if task and task.prompt.strip() in self.eval_prompts:
+                task, why = None, "rejected: identical to an eval prompt"
             authored_log.append({"module": mod, "accepted": task is not None, "reason": why})
             self._trace(phase="author", arm=st.name, day=day, module=mod, messages=msg, output=text, reason=why)
             if task:
@@ -303,16 +313,18 @@ class Experiment:
                             self.policy.save(str(self.out / "checkpoints" / arm / f"day{day}"))
                 rec["eval"] = self.evaluate(st, day)
                 days.append(rec)
+                self.results[arm] = {"days": days, "lessons": [l.to_dict() for l in st.lessons.lessons]}
+                self.flush()  # crash-safe: artifacts are always current to the last finished day
                 e = rec["eval"]
                 log(f"[{arm}] day {day}: new={e['new_module_acc']} retention={e['retention_acc']} "
-                    f"all={e['all_acc']} reasoning={e['reasoning_acc']} mem_tokens={e['memory_tokens']}"
+                    f"all={e['all_acc']} unseen={e['unseen_family_acc']} reasoning={e['reasoning_acc']} mem_tokens={e['memory_tokens']}"
                     + (f" gate={'ok' if rec['night']['accepted'] else 'ROLLBACK'}" if "night" in rec else ""))
-            self.results[arm] = {"days": days, "lessons": [l.to_dict() for l in st.lessons.lessons]}
-            self.flush()
+        self.flush()
         self.trace_f.close()
         return self.results
 
     def flush(self):
+        self.trace_f.flush()
         art = build_artifacts(self.cfg, self.policy, self.results, self.showcase_traces, self.tasks,
                               self.showcase_ids, self.base_gate)
         (self.out / "run_artifacts.json").write_text(json.dumps(art, indent=1))

@@ -32,6 +32,24 @@ def test_splits_are_disjoint():
     assert not ev & gate and not ev & prac
 
 
+def test_one_heldout_family_per_module_never_practiced():
+    import pytest
+    for r in RELEASES:
+        assert sum(t.heldout for t in r.templates) == 1
+    assert all(not t.heldout for _, t in released_templates(10))
+    held = next(t for t in RELEASES[0].templates if t.heldout)
+    with pytest.raises(AssertionError):
+        PracticeSource().draw(RELEASES[0], held)
+
+
+def test_unseen_family_prompts_never_appear_in_practice_or_gate():
+    unseen = {t.prompt for t in eval_set(10, per_template=2) if t.heldout}
+    src = PracticeSource()
+    others = {src.draw(r, t).prompt for _ in range(20) for r, t in released_templates(10)}
+    others |= {make_task(r, t, GATE_SEED_BASE, "gate").prompt for r, t in released_templates(10)}
+    assert unseen and not unseen & others
+
+
 def test_prompts_never_contain_reference():
     from nightshift import prompts
     for t in eval_set(10):

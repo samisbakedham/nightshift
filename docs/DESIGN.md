@@ -49,7 +49,8 @@ ids it came from, so you can trace or remove it (`LessonStore.forget_source`).
 ## Controls
 
 - `base` and `rag` bracket the result (floor and ceiling).
-- `sft` and `sdft` share the same teacher, data stream and filtered tasks.
+- One task type per module is held out of practice, the gate and training; it's the headline metric.
+- `sft` and `sdft` share the same teacher and the same filtering rule (teacher-verified tasks only).
 - The eval, gate and practice splits are seed-disjoint. The gate never uses eval tasks, so rollback
   decisions don't peek at the reported numbers.
 - Reasoning eval items are generated, not taken from a public benchmark, so there's no

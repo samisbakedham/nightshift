@@ -50,7 +50,8 @@ function renderCards() {
       <div class="arm"><span class="dot" style="background:${COLOR[a]}"></span>${a}
         ${n ? `<span class="badge ${n.accepted ? "pass" : "fail"}" style="margin-left:auto">${n.accepted ? "update kept" : "rolled back"}</span>` : ""}</div>
       <div class="kpis">
-        <div class="kpi"><div class="v">${pct(e.all_acc)}</div><div class="l">all modules</div></div>
+        <div class="kpi"><div class="v">${pct(e.unseen_family_acc)}</div><div class="l">unseen task types</div></div>
+        <div class="kpi"><div class="v">${pct(e.all_acc)}</div><div class="l">all held-out tasks</div></div>
         <div class="kpi"><div class="v">${pct(e.new_module_acc)}</div><div class="l">today's module</div></div>
         <div class="kpi"><div class="v">${pct(e.retention_acc)}</div><div class="l">earlier modules</div></div>
         <div class="kpi"><div class="v">${pct(e.reasoning_acc)}</div><div class="l">reasoning</div></div>
@@ -86,7 +87,7 @@ function lineChart(el, key, { max = 1, fmt = pct } = {}) {
 }
 
 function charts() {
-  lineChart($("c1"), "all_acc");
+  lineChart($("c1"), "unseen_family_acc");
   lineChart($("c2"), "retention_acc");
   lineChart($("c3"), "reasoning_acc");
   lineChart($("c4"), "tokens");

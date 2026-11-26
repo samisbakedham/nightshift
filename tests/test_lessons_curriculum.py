@@ -36,11 +36,11 @@ def test_curriculum_weights_weak_templates():
     c = Curriculum(random.Random(0), new_module_share=0.0)
     for _ in range(30):
         c.record("run.sum_sq_even", True)
-        c.record("run.braid_shift", True)
-        c.record("run.max_fold", False)
+        c.record("run.braid_shift", False)
     plan = c.plan(1, 200, PracticeSource())
-    counts = {t: sum(p.template == t for p in plan) for t in ("run.sum_sq_even", "run.max_fold")}
-    assert counts["run.max_fold"] > 2 * counts["run.sum_sq_even"]
+    counts = {t: sum(p.template == t for p in plan) for t in ("run.sum_sq_even", "run.braid_shift", "run.max_fold")}
+    assert counts["run.braid_shift"] > 2 * counts["run.sum_sq_even"]
+    assert counts["run.max_fold"] == 0  # held-out family is never practiced
 
 
 def _spec(solution, inputs):

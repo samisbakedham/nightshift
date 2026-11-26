@@ -22,6 +22,7 @@ from typing import Callable
 class Template:
     id: str
     gen: Callable[[random.Random], dict]
+    heldout: bool = False   # never practiced, never gated, eval only ("unseen family")
 
 
 @dataclass
@@ -472,7 +473,7 @@ def _flow_affine(rng):
     a, b = rng.randint(2, 5), rng.randint(-5, 5)
     return dict(
         prompt=f"Write `solve()` that returns a tessel `Flow` which multiplies its input by {a} and then "
-               f"adds {b}. (The tests call `.pour(x)` on what you return.)",
+               f"adds {b}. (The tests run the returned flow on several inputs.)",
         inputs=["()"],
         ref=f"from tessel.flow import Flow\n"
             f"def solve():\n    return Flow() >> (lambda x: x * {a}) >> (lambda x: x + {b})\n",
@@ -559,34 +560,34 @@ def _shard_biggest(rng):
 RELEASES: list[Release] = [
     Release(1, "tessel.run", "from tessel.run import Run", RUN_DOCS,
             [Template("run.sum_sq_even", _run_sum_sq_even), Template("run.braid_shift", _run_braid_shift),
-             Template("run.max_fold", _run_max_fold)]),
+             Template("run.max_fold", _run_max_fold, heldout=True)]),
     Release(2, "tessel.grid", "from tessel.grid import Grid", GRID_DOCS,
             [Template("grid.diag", _grid_diag), Template("grid.corner_rotate", _grid_corner_after_rotate),
-             Template("grid.row_sums", _grid_row_sums)]),
+             Template("grid.row_sums", _grid_row_sums, heldout=True)]),
     Release(3, "tessel.scroll", "from tessel.scroll import Scroll", SCROLL_DOCS,
             [Template("scroll.top_word", _scroll_top_word), Template("scroll.verse_count", _scroll_verse_count),
-             Template("scroll.verse_lens", _scroll_first_verse_len)]),
+             Template("scroll.verse_lens", _scroll_first_verse_len, heldout=True)]),
     Release(4, "tessel.tick", "from tessel.tick import Tick", TICK_DOCS,
             [Template("tick.total", _tick_total), Template("tick.scaled_fmt", _tick_scaled_fmt),
-             Template("tick.longest", _tick_longest)]),
+             Template("tick.longest", _tick_longest, heldout=True)]),
     Release(5, "tessel.bag", "from tessel.bag import Bag", BAG_DOCS,
             [Template("bag.top", _bag_top), Template("bag.after_lift", _bag_after_lift),
-             Template("bag.bulk", _bag_bulk)]),
+             Template("bag.bulk", _bag_bulk, heldout=True)]),
     Release(6, "tessel.atlas", "from tessel.atlas import Atlas", ATLAS_DOCS,
             [Template("atlas.cost", _atlas_cost), Template("atlas.hops", _atlas_hops),
-             Template("atlas.unreachable", _atlas_unreachable)]),
+             Template("atlas.unreachable", _atlas_unreachable, heldout=True)]),
     Release(7, "tessel.rot", "from tessel.rot import Rot", ROT_DOCS,
             [Template("rot.double", _rot_double), Template("rot.crack", _rot_crack),
-             Template("rot.upper", _rot_upper)]),
+             Template("rot.upper", _rot_upper, heldout=True)]),
     Release(8, "tessel.vault", "from tessel.vault import Vault", VAULT_DOCS,
             [Template("vault.at", _vault_at), Template("vault.last_version", _vault_last_version),
-             Template("vault.changes", _vault_changes)]),
+             Template("vault.changes", _vault_changes, heldout=True)]),
     Release(9, "tessel.flow", "from tessel.flow import Flow", FLOW_DOCS,
             [Template("flow.affine", _flow_affine), Template("flow.guarded", _flow_guarded),
-             Template("flow.chain", _flow_chain)]),
+             Template("flow.chain", _flow_chain, heldout=True)]),
     Release(10, "tessel.shard", "from tessel.shard import Shard", SHARD_DOCS,
             [Template("shard.total_area", _shard_total_area), Template("shard.rim_nudged", _shard_rim_nudged),
-             Template("shard.biggest", _shard_biggest)]),
+             Template("shard.biggest", _shard_biggest, heldout=True)]),
 ]
 
 

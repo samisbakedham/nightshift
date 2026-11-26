@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # One-command real experiment on a single 80 GB GPU (A100/H100).
 #
-#   git clone <this repo> && cd nightshift && bash scripts/run_cloud.sh
+#   gh repo clone samisbakedham/nightshift && cd nightshift && bash scripts/run_cloud.sh
+#   (the repo is private: run `gh auth login` on the GPU box first, or make the repo public)
 #
 # Extra flags are passed through, e.g.:
 #   bash scripts/run_cloud.sh --days 3 --arms base,sdft        # quick partial run
@@ -27,6 +28,12 @@ python -m pytest -q
 
 echo "== dry run (stub, ~2 min) to prove the pipeline before spending GPU time"
 python -m nightshift.run --engine stub --out-dir "$RUN_DIR/dryrun" --days 2 > "$RUN_DIR/dryrun.log"
+
+echo "== real-model preflight (1 day, sdft only, tiny budgets): catches tokenizer/chat-template/GPU issues cheaply"
+python -m nightshift.run --engine hf --model "${MODEL:-Qwen/Qwen2.5-7B-Instruct}" --out-dir "$RUN_DIR/preflight" \
+  --days 1 --arms sdft --practice-per-day 4 --authored-per-day 1 --eval-per-template 1 \
+  --reasoning-eval-n 5 --gate-reasoning-n 3 --replay-per-day 2 --checkpoint-days 1 2>&1 | tee "$RUN_DIR/preflight.log"
+echo "   preflight ok. Check the night line above: teacher_pass_rate near 0 means the model can't use the docs."
 
 echo "== real run -> $RUN_DIR (log: $RUN_DIR/run.log)"
 python -m nightshift.run --engine hf --model "${MODEL:-Qwen/Qwen2.5-7B-Instruct}" --out-dir "$RUN_DIR" "$@" 2>&1 | tee "$RUN_DIR/run.log"

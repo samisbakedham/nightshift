@@ -20,13 +20,18 @@ and each night it:
 The question: **by day 10, can it use the whole library with zero docs in the prompt, without
 forgetting the early modules or getting worse at general reasoning?**
 
+The headline metric is accuracy on **unseen task types**: for every module, one kind of task is
+never practiced, never used by the gate, and never trained on. It only appears in the final eval,
+so passing it means the model learned the API, not the prompt.
+
 > **Status: the pipeline is built and tested; there are no real results yet.** The numbers in
 > `demo/run_artifacts.json` come from a scripted stub and are labeled as such everywhere. Real
 > numbers require one GPU run (`scripts/run_cloud.sh`).
 
 ## The four arms
 
-All arms start from the same weights and see the same task stream. They differ only in how they learn.
+All arms start from the same weights, get the same daily releases and are scored on the same
+held-out eval. (Half of each day's practice is weakness-weighted, so it adapts per arm.)
 
 | arm | memory at test time | learns by | what it shows |
 |---|---|---|---|
@@ -38,7 +43,7 @@ All arms start from the same weights and see the same task stream. They differ o
 The **teacher** for both `sft` and `sdft` is identical: the frozen initial weights (LoRA switched
 off) with docs + promoted lessons in context. So `sft` vs `sdft` isolates the learning method.
 
-A win looks like: `sdft` ≈ `rag` on accuracy with **0 memory tokens**, `sdft` > `sft` on
+A win looks like: `sdft` ≈ `rag` on unseen-type accuracy with **0 memory tokens**, `sdft` > `sft` on
 earlier-module retention, and `sdft` ≈ `base` on general reasoning.
 
 ## How it works
@@ -73,9 +78,10 @@ lengths; `completion_logits` aligns them token for token. The tempting shortcut
 depend on the teacher at all. There's a test proving that (`tests/test_losses.py`).
 
 **Why the result would be trustworthy:**
-- `tessel` is invented, with unguessable names (`Run.knot(fn, seed=)` not `reduce`), so passing means learning.
+- `tessel` is invented, with unusual names (`Run.knot(fn, seed=)` not `reduce`), so the base model can't just guess. (Some task prompts use the module's verbs, e.g. "seal", so prompts carry a little API signal; the `base` arm measures how much.)
+- One task type per module is held out entirely; the headline number is measured only on those.
 - Every task is graded by executing code against hidden tests. No LLM judge anywhere.
-- Held-out eval, gate, and practice instances come from disjoint seed ranges (tested).
+- Eval, gate and practice instances of practiced task types come from disjoint seed ranges, and self-made exercises identical to an eval prompt are rejected (tested).
 - Reference solutions never appear in any prompt (tested).
 - Every eval prompt and output is saved; the demo shows the exact prompt for each arm.
 - The `base` arm is the floor; the `rag` arm is the ceiling.
@@ -88,7 +94,7 @@ More detail and the open risks: [`docs/DESIGN.md`](docs/DESIGN.md). Related work
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-python -m pytest -q                                          # 23 tests, ~30s
+python -m pytest -q                                          # 25 tests, ~30s
 python -m nightshift.run --engine stub --out-dir runs/dry    # full 10 days, scripted model, ~2 min
 python -m nightshift.run --engine tiny --days 2 --practice-per-day 4 --max-new-tokens 24 --out-dir runs/tiny
 ```
@@ -100,8 +106,9 @@ gate, artifacts). `tiny` is a real 2-layer random transformer that runs the actu
 **Real run (one 80 GB GPU, A100/H100):**
 
 ```bash
-git clone https://github.com/samisbakedham/nightshift && cd nightshift
-bash scripts/run_cloud.sh                       # Qwen/Qwen2.5-7B-Instruct, all 4 arms, 10 days
+gh auth login                                   # the repo is private
+gh repo clone samisbakedham/nightshift && cd nightshift
+bash scripts/run_cloud.sh                       # tests → stub dry run → 1-day real preflight → full run
 bash scripts/run_cloud.sh --days 3 --arms base,rag,sdft   # cheaper first look
 ```
 
@@ -110,6 +117,7 @@ generation-bound work (≈ 4–8 h, so roughly $5–20 at current A100 rental pr
 Use a 7B+ model: self-distillation relies on the model using docs in context well, which
 small models do poorly.
 
+Artifacts are rewritten after every simulated day, so a crash loses at most one day.
 Outputs: `runs/<timestamp>/run_artifacts.json` (metrics + showcase traces), `traces.jsonl` (every
 prompt and output), and LoRA adapters for days 1, 5 and 10.
 
@@ -144,7 +152,7 @@ nightshift/
   run.py                   CLI
 scripts/run_cloud.sh       one-command GPU run
 demo/                      static demo page
-tests/                     23 tests
+tests/                     25 tests
 ```
 
 ## Swapping the environment
