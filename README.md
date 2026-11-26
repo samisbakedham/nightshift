@@ -65,13 +65,16 @@ ended at 100%.
 update often overwrites older ones (day 5: 100% new, 8% older), so it does not beat sft over 10 days. The
 gate flagged 5 of sdft's 10 nights (sft: 2), including both of sdft's worst forgetting nights, but it only
 logged them, to keep the comparison fair. Eval sets are small, so single-day swings are a handful of tasks.
-Next: enforce the gate, replay old-module practice at night, or take smaller steps; and enlarge the eval set.
+**Day 5, looked at closely:** not a bad module and not missing replay (night 5 trained on 9 older-module tasks,
+including 4 for scroll, and scroll still went 6/6 → 0/6). The update itself destabilized the model: sdft's loss
+rose during that night (0.004 → 0.144, also on night 8) and its code came out garbled (`importdef`, invented
+names, one call repeated until the token limit). sft broke the same night (an extra `)` in 13 answers). Next:
+a gentler nightly update (lower lr, fewer passes, LR decay) and a larger eval set.
 
 The arms ran as separate Modal jobs (same config and seed; each arm restarts from the frozen model). base
 comes from `full-coder7b-v1`, which Modal cancelled after 15 minutes for an unknown reason (rag was on day 10). rag
 was re-run in full, matched v1's days 1–9 exactly, and is taken from the re-run. Merged with `scripts/merge_runs.py`; provenance is in
 `meta.merged_from`. Data: `results/full-coder7b/`.
-The 10-day run hasn't happened yet.
 
 ## The four arms
 
@@ -88,7 +91,11 @@ held-out eval. (Half of each day's practice is weakness-weighted, so it adapts p
 The **teacher** for both `sft` and `sdft` is identical: the frozen initial weights (LoRA switched
 off) with docs + promoted lessons in context. So `sft` vs `sdft` isolates the learning method.
 
-**Replay is the same for both, every night (days 1–10):** the same 8 general-reasoning prompts
+**What each night trains on, identical for both arms (days 1–10):**
+- **tessel tasks, new and old:** the day's practice tasks the teacher solved. About 9 of 24 practice tasks a day
+  come from *earlier* modules (weakness-weighted), so older modules are replayed implicitly, typically 6–10
+  training items a night (25–35%). There is no fixed old-module replay buffer, so coverage varies.
+- **reasoning replay:** the same 8 general-reasoning prompts
 (chosen by day). `sdft` samples its own answers and is pulled toward the frozen base model's
 distribution (token-level KL, no docs on either side). `sft` trains with cross-entropy on the frozen
 base model's answers to those prompts, keeping only the ones graded correct. Both train only on

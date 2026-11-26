@@ -186,9 +186,8 @@ def main():
     if (RES / FULL["id"] / "run_artifacts.json").exists():
         runs.append(build_full(FULL))
     j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs,
-         "next": "Next: make the night protect what was already learned, e.g. enforce the gate (roll back flagged nights), "
-                 "replay old-module practice alongside the new one, or use a smaller update; and grow the eval set so "
-                 "day-to-day differences are measurable."}
+         "next": "Next: a gentler nightly update (lower lr, fewer passes, LR decay). Older modules are already in each "
+                 "night's training (via practice), and on day 5 that didn't stop the collapse; the update itself did the damage."}
     (ROOT / "demo" / "journal.json").write_text(json.dumps(j, indent=1))
     print(f"wrote demo/journal.json ({len(runs)} runs)")
 
