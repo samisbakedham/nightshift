@@ -50,7 +50,9 @@ ids it came from, so you can trace or remove it (`LessonStore.forget_source`).
 
 - `base` and `rag` bracket the result (floor and ceiling).
 - One task type per module is held out of practice, the gate and training; it's the headline metric.
-- `sft` and `sdft` share the same teacher and the same filtering rule (teacher-verified tasks only).
+- `sft` and `sdft` share the same teacher and the same filtering rule (teacher-verified tasks only),
+  and both get replay on the same 8 reasoning prompts per night: `sdft` as a KL anchor to the base
+  model on its own samples, `sft` as cross-entropy on the base model's answers graded correct.
 - The regression gate runs in `log` mode for the benchmark: each update is scored (pre-rollback)
   and flagged if it regressed, but never undone. Rolling back would hide exactly the forgetting
   that `sft` vs `sdft` is meant to measure. `--gate enforce` is the deployment mode; `--gate off`

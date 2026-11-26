@@ -56,11 +56,17 @@ held-out eval. (Half of each day's practice is weakness-weighted, so it adapts p
 |---|---|---|---|
 | `base` | none | nothing | the floor: what the model can guess |
 | `rag` | docs + lessons in every prompt | nothing (in-context only) | the ceiling for "just give it the docs"; prompt grows daily |
-| `sft` | **none** | nightly fine-tuning on the teacher's verified solutions | off-policy imitation (known to forget) |
+| `sft` | **none** | nightly fine-tuning on the teacher's verified solutions + reasoning replay | off-policy imitation (known to forget) |
 | `sdft` | **none** | nightly on-policy self-distillation + reasoning replay | the method under test |
 
 The **teacher** for both `sft` and `sdft` is identical: the frozen initial weights (LoRA switched
 off) with docs + promoted lessons in context. So `sft` vs `sdft` isolates the learning method.
+
+**Replay is the same for both, every night (days 1–10):** the same 8 general-reasoning prompts
+(chosen by day). `sdft` samples its own answers and is pulled toward the frozen base model's
+distribution (token-level KL, no docs on either side). `sft` trains with cross-entropy on the frozen
+base model's answers to those prompts, keeping only the ones graded correct. Both train only on
+teacher-verified tasks, skip a night when the teacher verified nothing, and use the same 5 passes at lr 5e-4.
 
 **Fairness:** the benchmark runs with `--gate log` (the default): updates are scored but never
 rolled back, so if `sft` forgets catastrophically, that shows up in the retention and reasoning

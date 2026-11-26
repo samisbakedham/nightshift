@@ -118,8 +118,8 @@
   <div class="explain">
     <div class="panel"><b><span class="dot" style="background:var(--base)"></span> base</b><div>The untrained model, no docs. The floor.</div></div>
     <div class="panel"><b><span class="dot" style="background:var(--rag)"></span> rag</b><div>Docs + lessons pasted into every prompt. Learns instantly, pays in tokens forever.</div></div>
-    <div class="panel"><b><span class="dot" style="background:var(--sft)"></span> sft</b><div>Nightly fine-tuning on the teacher's solutions. Closed-book at test time.</div></div>
-    <div class="panel"><b><span class="dot" style="background:var(--sdft)"></span> sdft</b><div>Nightly on-policy self-distillation from a frozen teacher that sees the docs. Closed-book at test time.</div></div>
+    <div class="panel"><b><span class="dot" style="background:var(--sft)"></span> sft</b><div>Nightly fine-tuning on the teacher's verified solutions, plus replay: the base model's correct answers to 8 reasoning prompts. Closed-book at test time.</div></div>
+    <div class="panel"><b><span class="dot" style="background:var(--sdft)"></span> sdft</b><div>Nightly on-policy self-distillation from a frozen teacher that sees the docs, plus replay: the same 8 reasoning prompts, matched to the base model. Closed-book at test time.</div></div>
   </div>
 
   <h2>Timeline</h2>
