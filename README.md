@@ -30,6 +30,20 @@ so passing it means the model learned the API, not the prompt.
 > numbers require one GPU run (`scripts/run_cloud.sh`). A local test with Qwen2.5-0.5B ran the
 > real path end to end but is too small to learn the library (its teacher solved 0–17% of tasks).
 
+## Results so far (real runs)
+
+| run | model | base | docs in prompt | teacher | student after night 1 |
+|---|---|---|---|---|---|
+| local, 2 days | Qwen2.5-0.5B | 0/12 | 2/12 | 1/6 | 0/12 |
+| Modal A100, day 1 | Qwen2.5-Coder-7B | 0/12 | 8/12 | 13/24 | 0/12 |
+| same, after fixing one doc line | Qwen2.5-Coder-7B | 0/12 | 12/12 | 24/24 | 0/12 |
+
+The 7B teacher's first misses were all one mistake caused by a gap in the docs (`knot` didn't say it
+returns a plain value). After one night the student adopted the teacher's chained style but not yet the
+library's names, and general reasoning was unharmed (80% → 87%). Full story, charts and the exact code:
+the demo page's lab notebook (`demo/`, data in `results/`, built by `scripts/build_journal.py`).
+The 10-day run hasn't happened yet.
+
 ## The four arms
 
 All arms start from the same weights, get the same daily releases and are scored on the same

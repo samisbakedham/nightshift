@@ -17,8 +17,8 @@ fetch("run_artifacts.json").then((r) => r.json()).then((data) => {
     ? "Gate mode: log. Every update is scored on the regression gate but never rolled back, so forgetting shows up in the charts instead of being hidden."
     : gm === "off" ? "Gate mode: off. No gate scoring; updates are always kept." : "Gate mode: enforce. Updates that regress are rolled back.";
   if (A.meta.placeholder) {
-    $("banner").innerHTML = `<div class="banner">DRY-RUN PLACEHOLDER: these numbers come from a scripted stub, not a trained model.
-      ${esc(A.meta.placeholder_reason)}</div>`;
+    $("banner").innerHTML = `<div class="banner">DRY-RUN PLACEHOLDER: the 10-day charts below come from a scripted stub, not a trained model.
+      They show what the page will look like; the real numbers so far are in the lab notebook above.</div>`;
   }
   $("meta").textContent = `model: ${A.meta.model} · engine: ${A.meta.engine} · generated ${A.meta.created}` +
     (A.meta.approx_tokens ? " · token counts approximate" : "");

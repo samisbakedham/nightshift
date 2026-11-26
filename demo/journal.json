@@ -1,0 +1,252 @@
+{
+ "generated_from": "results/ (run_artifacts.json + traces.jsonl)",
+ "runs": [
+  {
+   "id": "20261125-local-qwen0.5b",
+   "title": "A 0.5B model is too small to learn from its own docs",
+   "hardware": "MacBook (Apple GPU)",
+   "what": "First real-model run: Qwen2.5-0.5B-Instruct, 2 simulated days, arms base / rag / sdft.",
+   "lesson": "Self-distillation can only copy what the teacher (the model with the docs in its prompt) can do. Even with the docs, 0.5B barely solved anything, so there was nothing to distill.",
+   "model": "Qwen/Qwen2.5-0.5B-Instruct",
+   "arms": {
+    "base": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 6,
+       "pct": 0
+      },
+      "reasoning": 0.1
+     },
+     {
+      "acc": {
+       "k": 0,
+       "n": 12,
+       "pct": 0
+      },
+      "reasoning": 0.1
+     }
+    ],
+    "rag": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 6,
+       "pct": 0
+      },
+      "reasoning": 0.1
+     },
+     {
+      "acc": {
+       "k": 2,
+       "n": 12,
+       "pct": 17
+      },
+      "reasoning": 0.1
+     }
+    ],
+    "sdft": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 6,
+       "pct": 0
+      },
+      "reasoning": 0.1,
+      "teacher": {
+       "k": 0,
+       "n": 6,
+       "pct": 0
+      },
+      "train_items": 0,
+      "loss": null
+     },
+     {
+      "acc": {
+       "k": 0,
+       "n": 12,
+       "pct": 0
+      },
+      "reasoning": 0.2,
+      "teacher": {
+       "k": 1,
+       "n": 6,
+       "pct": 17
+      },
+      "train_items": 3,
+      "loss": 0.04689734898222583
+     }
+    ]
+   },
+   "base_reasoning": 0.2,
+   "teacher_by_type": [
+    {
+     "type": "run.braid_shift",
+     "pass": 0,
+     "n": 3
+    },
+    {
+     "type": "run.sum_sq_even",
+     "pass": 0,
+     "n": 3
+    }
+   ],
+   "teacher_fail_example": {
+    "task": "run.sum_sq_even",
+    "code": "from tessel.run import Run\n\ndef solve(r):\n    # Filter out even numbers and sum the remaining ones\n    return sum(item * 5 for item in r if item % 2 == 0)",
+    "error": "TypeError: 'Run' object is not iterable"
+   },
+   "before_after": {
+    "task_id": "run.sum_sq_even#eval0",
+    "prompt": "Write `solve(r)` that takes a tessel `Run` of ints and returns the sum of (x * 3) for the even items only, as an int.\nThe relevant module is `tessel.run`.",
+    "before": "def solve(r):\n    return sum(x * 3 for x in r if x % 2 == 0)",
+    "before_error": "TypeError: 'Run' object is not iterable",
+    "after": "def solve(r):\n    return sum(x * 3 for x in r if x % 2 == 0)",
+    "after_error": "TypeError: 'Run' object is not iterable"
+   }
+  },
+  {
+   "id": "20261125-214818-preflight",
+   "title": "Coder-7B: teacher at 54%, and every miss was the same mistake",
+   "hardware": "Modal, NVIDIA A100 80GB",
+   "what": "Preflight: day 1 of base / rag / sdft with Qwen2.5-Coder-7B-Instruct at full budgets.",
+   "lesson": "The teacher solved one task type 13/13 and the other 0/11, always by calling .unravel() on the result of knot(). The docs never said knot returns a plain value. A gap in the docs, not in the model.",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+   "arms": {
+    "base": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 12,
+       "pct": 0
+      },
+      "reasoning": 0.8
+     }
+    ],
+    "rag": [
+     {
+      "acc": {
+       "k": 8,
+       "n": 12,
+       "pct": 67
+      },
+      "reasoning": 0.8
+     }
+    ],
+    "sdft": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 12,
+       "pct": 0
+      },
+      "reasoning": 0.9,
+      "teacher": {
+       "k": 13,
+       "n": 24,
+       "pct": 54
+      },
+      "train_items": 21,
+      "loss": 0.19799099254755892
+     }
+    ]
+   },
+   "base_reasoning": 0.8666666666666667,
+   "teacher_by_type": [
+    {
+     "type": "run.braid_shift",
+     "pass": 13,
+     "n": 13
+    },
+    {
+     "type": "run.sum_sq_even",
+     "pass": 0,
+     "n": 11
+    }
+   ],
+   "teacher_fail_example": {
+    "task": "run.sum_sq_even",
+    "code": "from tessel.run import Run\n\ndef solve(r):\n    return r.sieve(lambda x: x % 2 == 0).thread(lambda x: x * 5).knot(lambda acc, item: acc + item, seed=0).unravel()[0]",
+    "error": "AttributeError: 'int' object has no attribute 'unravel'"
+   },
+   "before_after": {
+    "task_id": "run.sum_sq_even#eval0",
+    "prompt": "Write `solve(r)` that takes a tessel `Run` of ints and returns the sum of (x * 3) for the even items only, as an int.\nThe relevant module is `tessel.run`.",
+    "before": "from tessel.run import Run\n\ndef solve(r: Run[int]) -> int:\n    return sum(x * 3 for x in r if x % 2 == 0)",
+    "before_error": "Code failed to load: TypeError: type 'Run' is not subscriptable",
+    "after": "from tessel.run import Run\n\ndef solve(r: Run[int]) -> int:\n    return sum(x * 3 for x in r if x % 2 == 0)",
+    "after_error": "Code failed to load: TypeError: type 'Run' is not subscriptable"
+   }
+  },
+  {
+   "id": "20261125-215708-preflight",
+   "title": "One doc line fixed: teacher 24/24, but the student didn't move yet",
+   "hardware": "Modal, NVIDIA A100 80GB",
+   "what": "Same preflight after stating knot's return type (and auditing every module's docs).",
+   "lesson": "The teacher is now strong, so there is real signal to distill. After one night the closed-book student switched to the teacher's chained style but still used the wrong method names: one short training pass was too little. General reasoning was unharmed.",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+   "arms": {
+    "base": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 12,
+       "pct": 0
+      },
+      "reasoning": 0.8
+     }
+    ],
+    "rag": [
+     {
+      "acc": {
+       "k": 12,
+       "n": 12,
+       "pct": 100
+      },
+      "reasoning": 0.8
+     }
+    ],
+    "sdft": [
+     {
+      "acc": {
+       "k": 0,
+       "n": 12,
+       "pct": 0
+      },
+      "reasoning": 0.8667,
+      "teacher": {
+       "k": 24,
+       "n": 24,
+       "pct": 100
+      },
+      "train_items": 32,
+      "loss": 0.21071810873922914
+     }
+    ]
+   },
+   "base_reasoning": 0.8666666666666667,
+   "teacher_by_type": [
+    {
+     "type": "run.braid_shift",
+     "pass": 13,
+     "n": 13
+    },
+    {
+     "type": "run.sum_sq_even",
+     "pass": 11,
+     "n": 11
+    }
+   ],
+   "teacher_fail_example": null,
+   "before_after": {
+    "task_id": "run.sum_sq_even#eval0",
+    "prompt": "Write `solve(r)` that takes a tessel `Run` of ints and returns the sum of (x * 3) for the even items only, as an int.\nThe relevant module is `tessel.run`.",
+    "before": "from tessel.run import Run\n\ndef solve(r: Run[int]) -> int:\n    return sum(x * 3 for x in r if x % 2 == 0)",
+    "before_error": "Code failed to load: TypeError: type 'Run' is not subscriptable",
+    "after": "from tessel.run import Run\n\ndef solve(r):\n    return r.filter(lambda x: x % 2 == 0).map(lambda x: x * 3).foldl(lambda acc, x: acc + x, 0)",
+    "after_error": "AttributeError: 'Run' object has no attribute 'filter'"
+   }
+  }
+ ],
+ "next": "Strengthen the nightly update (more on-policy passes, higher learning rate; same for sft and sdft), check that one night moves the student off 0%, then run all 10 days."
+}

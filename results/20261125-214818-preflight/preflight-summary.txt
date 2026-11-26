@@ -1,0 +1,11 @@
+
+========================================================================
+PREFLIGHT  model=Qwen/Qwen2.5-Coder-7B-Instruct  ({'device': 'cuda', 'base_dtype': 'torch.bfloat16', 'lora_dtype': 'torch.float32', 'gen_batch': 32, 'trainable_params': 40370176})
+  base_acc                0% (0/12)   want < 25%  -> OK
+  rag_acc                67% (8/12)   (ceiling; should be well above base)
+  teacher_pass_rate     54% (13/24)   want >= 70% -> FAIL: teacher too weak, nothing to distill
+  est. time, 10 days, arms base,rag,sft,sdft: ~0.9 h (rough, +-50%)
+  generation: 113 tokens/seq on average, 4% hit max_new_tokens without EOS
+========================================================================
+  Try a bigger model:  MODEL=Qwen/Qwen2.5-Coder-14B-Instruct bash scripts/run_cloud.sh preflight
+NO-GO
