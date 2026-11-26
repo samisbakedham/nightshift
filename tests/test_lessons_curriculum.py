@@ -53,6 +53,14 @@ def test_accept_authored_good_task():
     assert why == "accepted" and task.tests[0][1] == "[2, 3]"
 
 
+def test_accept_authored_python_literal():
+    text = "```json\n{'prompt': 'p', 'solution': 'from tessel.run import Run\\ndef solve(r):\\n    return r.unravel()', 'inputs': ['(Run.of(1),)']}\n```"
+    task, why = accept_authored(text, RUN, "x", 1)
+    assert why == "accepted", why
+    bad = "{'prompt': 'p', 'solution': None, 'inputs': [(1, 2)]}"
+    assert accept_authored(bad, RUN, "x", 1)[0] is None
+
+
 def test_accept_authored_rejects_bad_tasks():
     triv = "from tessel.run import Run\ndef solve(r):\n    return None\n"
     assert accept_authored(_spec(triv, ["(Run.of(1),)"]), RUN, "x", 1)[0] is None          # stub passes

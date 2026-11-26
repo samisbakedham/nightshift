@@ -48,7 +48,7 @@ function renderCards() {
     const tok = e.memory_tokens;
     return `<div class="panel">
       <div class="arm"><span class="dot" style="background:${COLOR[a]}"></span>${a}
-        ${n ? `<span class="badge ${n.accepted ? "pass" : "fail"}" style="margin-left:auto">${n.accepted ? "update kept" : "rolled back"}</span>` : ""}</div>
+        ${n ? `<span class="badge ${n.skipped ? "" : n.accepted ? "pass" : "fail"}" style="margin-left:auto">${n.skipped ? "no update" : n.accepted ? "update kept" : "rolled back"}</span>` : ""}</div>
       <div class="kpis">
         <div class="kpi"><div class="v">${pct(e.unseen_family_acc)}</div><div class="l">unseen task types</div></div>
         <div class="kpi"><div class="v">${pct(e.all_acc)}</div><div class="l">all held-out tasks</div></div>
@@ -137,8 +137,8 @@ function renderNights() {
       rows.push(`<tr><td class="m">${a}</td><td class="m">${i + 1}</td><td class="m">${pct(p.practice_pass_rate)} of ${p.n_practice}</td>
         <td class="m">${p.authored.filter((x) => x.accepted).length}/${p.authored.length}</td>
         <td class="m">${pct(n.teacher_pass_rate)}</td><td class="m">${n.train_items}</td><td class="m">${loss}</td>
-        <td class="m">${pct(n.gate_after.reasoning)}</td>
-        <td class="m" style="color:${n.accepted ? "var(--sdft)" : "var(--bad)"}">${n.accepted ? "kept" : "ROLLED BACK: " + esc(n.rejected_because.join("; "))}</td></tr>`);
+        <td class="m">${n.gate_after ? pct(n.gate_after.reasoning) : "–"}</td>
+        <td class="m" style="color:${n.skipped ? "var(--muted)" : n.accepted ? "var(--sdft)" : "var(--bad)"}">${n.skipped ? "skipped (nothing verified)" : n.accepted ? "kept" : "ROLLED BACK: " + esc(n.rejected_because.join("; "))}</td></tr>`);
     });
   }
   $("nights").innerHTML = `<tr><th>arm</th><th>day</th><th>practice pass</th><th>self-made tasks</th><th>teacher pass</th><th>train items</th><th>loss</th><th>gate: reasoning</th><th>update</th></tr>` + rows.join("");

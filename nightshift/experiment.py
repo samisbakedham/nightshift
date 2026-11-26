@@ -261,7 +261,14 @@ class Experiment:
         # teacher = frozen base + docs + PROMOTED lessons for the task's module
         t_msgs = [prompts.task_messages(t, *self._memory_for(st, day, t.module, promoted_only=True)) for t in tasks]
         t_outs, t_grades = self._solve(tasks, t_msgs, use_base=True)
+        for t, m, o, g in zip(tasks, t_msgs, t_outs, t_grades):
+            self._trace(phase="teacher", arm=st.name, day=day, task_id=t.id, module=t.module, messages=m,
+                        output=o, grade=g.to_dict())
         keep = [i for i, g in enumerate(t_grades) if g.passed]
+        if not keep:  # nothing verified to learn: training on replay alone only adds noise
+            return {"teacher_pass_rate": 0.0, "train_items": 0, "train": {"steps": 0, "loss_mean": None},
+                    "gate_before": None, "gate_after": None, "accepted": True, "skipped": True,
+                    "rejected_because": ["skipped: teacher solved no practice task, nothing to distill"]}
         items = [TrainItem(student_messages=prompts.task_messages(tasks[i]), teacher_messages=t_msgs[i],
                            target=extract_code(t_outs[i]).strip() and f"```python\n{extract_code(t_outs[i]).strip()}\n```",
                            module=tasks[i].module) for i in keep]

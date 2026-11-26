@@ -16,6 +16,7 @@ Self-authored tasks never enter the held-out eval split.
 
 from __future__ import annotations
 
+import ast
 import json
 import math
 import random
@@ -83,7 +84,10 @@ def accept_authored(text: str, rel: Release, task_id: str, day: int) -> tuple[Ta
     if not m:
         return None, "no JSON object"
     try:
-        spec = json.loads(m.group(0))
+        try:
+            spec = json.loads(m.group(0))
+        except json.JSONDecodeError:  # models often emit a Python dict literal instead of JSON
+            spec = ast.literal_eval(m.group(0))
         prompt, solution, inputs = spec["prompt"], extract_code(spec["solution"]), spec["inputs"]
         assert isinstance(prompt, str) and isinstance(inputs, list) and 1 <= len(inputs) <= 6
         assert all(isinstance(a, str) and len(a) < 500 for a in inputs)

@@ -73,7 +73,7 @@ class HFPolicy(Policy):
             if self.tok.pad_token_id is None:
                 self.tok.pad_token = self.tok.eos_token
             dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
-            base = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=dtype)
+            base = AutoModelForCausalLM.from_pretrained(model_name, dtype=dtype)
         base.to(self.device)
         lcfg = LoraConfig(r=lora_r, lora_alpha=lora_alpha, lora_dropout=0.0, bias="none", task_type="CAUSAL_LM",
                           target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
