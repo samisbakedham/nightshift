@@ -220,6 +220,24 @@ def build_versus(v1, v2):
             "lesson": V2_LESSON or ""}
 
 
+def build_autopsy(v1, v2, day=5):
+    """Every day-5 eval answer that failed to parse in v1, next to the same task's answer in v2 (same seed)."""
+    T1, T2 = traces(v1), traces(v2)
+    ev2 = {(r["arm"], r["task_id"]): r for r in T2 if r["phase"] == "eval" and r["day"] == day}
+    out = []
+    for r in T1:
+        if r["phase"] == "eval" and r["day"] == day and r["arm"] in ("sft", "sdft") and "SyntaxError" in r["grade"]["feedback"]:
+            b = ev2.get((r["arm"], r["task_id"]))
+            side = lambda t: {"code": code(t["output"])[-900:], "passed": bool(t["grade"]["passed"]),
+                              "feedback": t["grade"]["feedback"][:160]} if t else None
+            out.append({"arm": r["arm"], "task_id": r["task_id"], "module": r["module"],
+                        "prompt": next(m["content"] for m in r["messages"] if m["role"] == "user")[-700:],
+                        "v1": side(r), "v2": side(b)})
+    # most striking first: sdft before sft, then the longest (runaway) v1 outputs
+    out.sort(key=lambda x: (x["arm"] != "sdft", -len(x["v1"]["code"])))
+    return {"day": day, "examples": out}
+
+
 def build_full(spec):
     A = json.loads((RES / spec["id"] / "run_artifacts.json").read_text())
     arms = {}
@@ -242,7 +260,10 @@ def main():
     if (RES / FULL2["id"] / "run_artifacts.json").exists():
         runs.append(build_full(dict(FULL2, lesson="")))
         runs.append(build_versus(FULL["id"], FULL2["id"]))
-    j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs,
+        autopsy = build_autopsy(FULL["id"], FULL2["id"])
+    else:
+        autopsy = None
+    j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs, "autopsy": autopsy,
          "next": "Next: a larger eval set (6 to 60 tasks a day is too few to separate close arms), then work out why "
                  "on-policy sdft still trails plain sft here."}
     (ROOT / "demo" / "journal.json").write_text(json.dumps(j, indent=1))
