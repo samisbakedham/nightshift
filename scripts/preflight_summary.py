@@ -66,7 +66,9 @@ def main():
               f"{g['hit_cap'] / g['sequences']:.0%} hit max_new_tokens without EOS")
     print("=" * 72)
     if not ok_teacher:
-        print("  Try a bigger model:  MODEL=Qwen/Qwen2.5-Coder-14B-Instruct bash scripts/run_cloud.sh preflight")
+        print("  Check which task types the teacher fails (phase=teacher in traces.jsonl), or try a bigger model:")
+        print("    modal run scripts/modal_run.py --mode preflight --model Qwen/Qwen2.5-Coder-14B-Instruct")
+        print("    MODEL=Qwen/Qwen2.5-Coder-14B-Instruct bash scripts/run_cloud.sh preflight")
     print("GO" if ok_base and ok_teacher else "NO-GO")
     sys.exit(0 if ok_base and ok_teacher else 1)
 

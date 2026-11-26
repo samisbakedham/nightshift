@@ -45,7 +45,7 @@ RUN_DOCS = """\
 - `Run.of(*items)` / `Run(iterable)`: build an immutable sequence.
 - `r.thread(fn) -> Run`: apply fn to every item (tessel's map).
 - `r.sieve(pred) -> Run`: keep items where pred is truthy (tessel's filter).
-- `r.knot(fn, *, seed)`: left fold, fn(acc, item). `seed` is KEYWORD-ONLY and required.
+- `r.knot(fn, *, seed) -> value`: left fold, fn(acc, item); returns the final accumulator itself (not a Run). `seed` is KEYWORD-ONLY and required.
 - `r.braid(other) -> Run`: interleave a0,b0,a1,b1,... leftovers appended.
 - `r.unravel() -> list`: materialize as a list.
 - Runs have no `.map`, `.filter`, `.reduce`, indexing or iteration helpers."""
