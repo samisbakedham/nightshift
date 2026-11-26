@@ -14,8 +14,9 @@ it in training. A new module ships every day for 10 days. Each day the model:
 and each night it:
 
 4. **consolidates**: distills docs + its verified lessons into a LoRA adapter with on-policy
-   self-distillation, then must pass a regression gate (general reasoning + older modules)
-   or the update is rolled back.
+   self-distillation, then every update is scored on a regression gate (general reasoning + older
+   modules). In the benchmark the gate only *logs* regressions, so forgetting stays visible;
+   `--gate enforce` rolls regressed updates back instead.
 
 The question: **by day 10, can it use the whole library with zero docs in the prompt, without
 forgetting the early modules or getting worse at general reasoning?**
@@ -26,7 +27,8 @@ so passing it means the model learned the API, not the prompt.
 
 > **Status: the pipeline is built and tested; there are no real results yet.** The numbers in
 > `demo/run_artifacts.json` come from a scripted stub and are labeled as such everywhere. Real
-> numbers require one GPU run (`scripts/run_cloud.sh`).
+> numbers require one GPU run (`scripts/run_cloud.sh`). A local test with Qwen2.5-0.5B ran the
+> real path end to end but is too small to learn the library (its teacher solved 0–17% of tasks).
 
 ## The four arms
 
@@ -42,6 +44,11 @@ held-out eval. (Half of each day's practice is weakness-weighted, so it adapts p
 
 The **teacher** for both `sft` and `sdft` is identical: the frozen initial weights (LoRA switched
 off) with docs + promoted lessons in context. So `sft` vs `sdft` isolates the learning method.
+
+**Fairness:** the benchmark runs with `--gate log` (the default): updates are scored but never
+rolled back, so if `sft` forgets catastrophically, that shows up in the retention and reasoning
+charts instead of being quietly undone. The night log records each update's pre-rollback gate
+score and whether it *would* have been rejected.
 
 A win looks like: `sdft` ≈ `rag` on unseen-type accuracy with **0 memory tokens**, `sdft` > `sft` on
 earlier-module retention, and `sdft` ≈ `base` on general reasoning.
@@ -65,7 +72,7 @@ flowchart LR
     RP[reasoning replay] --> K
     K --> U[LoRA update]
     U --> GT{regression gate}
-    GT -- regressed --> RB[rollback]
+    GT -- regressed --> RB[log it; rollback only<br/>with --gate enforce]
   end
   GT -- ok --> E[held-out eval: all modules + reasoning]
 ```
@@ -84,9 +91,10 @@ depend on the teacher at all. There's a test proving that (`tests/test_losses.py
 - Eval, gate and practice instances of practiced task types come from disjoint seed ranges, and self-made exercises identical to an eval prompt are rejected (tested).
 - Reference solutions never appear in any prompt (tested).
 - Every eval prompt and output is saved; the demo shows the exact prompt for each arm.
+- No arm's regressions are hidden: the gate logs instead of rolling back in the benchmark.
 - The `base` arm is the floor; the `rag` arm is the ceiling.
 
-More detail and the open risks: [`docs/DESIGN.md`](docs/DESIGN.md). Related work: [`docs/RESEARCH.md`](docs/RESEARCH.md).
+More detail and the open risks: [`docs/DESIGN.md`](docs/DESIGN.md). Papers this builds on: [`docs/RESEARCH.md`](docs/RESEARCH.md).
 
 ## Run it
 
@@ -94,7 +102,7 @@ More detail and the open risks: [`docs/DESIGN.md`](docs/DESIGN.md). Related work
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-python -m pytest -q                                          # 25 tests, ~30s
+python -m pytest -q                                          # 29 tests, ~30s
 python -m nightshift.run --engine stub --out-dir runs/dry    # full 10 days, scripted model, ~2 min
 python -m nightshift.run --engine tiny --days 2 --practice-per-day 4 --max-new-tokens 24 --out-dir runs/tiny
 ```
@@ -103,19 +111,29 @@ python -m nightshift.run --engine tiny --days 2 --practice-per-day 4 --max-new-t
 gate, artifacts). `tiny` is a real 2-layer random transformer that runs the actual training code
 (rollouts, KL, LoRA, rollback). **Neither produces meaningful results.**
 
-**Real run (one 80 GB GPU, A100/H100):**
+**Real run (one 80 GB GPU, A100/H100), default model `Qwen/Qwen2.5-Coder-7B-Instruct`:**
 
 ```bash
 gh auth login                                   # the repo is private
 gh repo clone samisbakedham/nightshift && cd nightshift
-bash scripts/run_cloud.sh                       # tests → stub dry run → 1-day real preflight → full run
-bash scripts/run_cloud.sh --days 3 --arms base,rag,sdft   # cheaper first look
+tmux                                            # so an SSH drop doesn't kill the run
+bash scripts/run_cloud.sh preflight             # tests + day 1 of base/rag/sdft -> GO / NO-GO + time estimate
+bash scripts/run_cloud.sh quick                 # 3 days, all 4 arms
+bash scripts/run_cloud.sh full                  # 10 days, all 4 arms
+bash scripts/publish_run.sh runs/<dir>          # commit + push the results before you kill the pod
 ```
 
-Runtime and cost are **not measured yet**. A rough estimate for the full run is several hours of
-generation-bound work (≈ 4–8 h, so roughly $5–20 at current A100 rental prices). Do a `--days 3` run first.
-Use a 7B+ model: self-distillation relies on the model using docs in context well, which
-small models do poorly.
+`preflight` prints a gate summary: `base_acc` (want < 25%: the model can't already guess the API),
+`rag_acc`, `teacher_pass_rate` (want ≥ 70%: the docs-in-context teacher can actually solve the
+tasks, otherwise there is nothing to distill) and a rough time estimate for the full run. If the
+teacher is too weak, use a bigger model: `MODEL=Qwen/Qwen2.5-Coder-14B-Instruct bash scripts/run_cloud.sh preflight`.
+Extra flags pass through, e.g. `bash scripts/run_cloud.sh quick --arms base,sdft --gate off`.
+
+`publish_run.sh` saves `run_artifacts.json` (to `demo/` and `results/<run>/`) and the run log. It
+does **not** save `traces.jsonl` or the LoRA adapters; copy those off the pod yourself if you want them.
+
+Runtime and cost are **not measured yet**; the preflight prints an estimate. Rough guess: several
+hours of generation-bound work for the full run.
 
 Artifacts are rewritten after every simulated day, so a crash loses at most one day.
 Outputs: `runs/<timestamp>/run_artifacts.json` (metrics + showcase traces), `traces.jsonl` (every
@@ -150,9 +168,10 @@ nightshift/
   hf_policy.py             HF model + LoRA; teacher = adapter disabled
   experiment.py            the day/night loop, gate, metrics, artifacts
   run.py                   CLI
-scripts/run_cloud.sh       one-command GPU run
+scripts/run_cloud.sh       GPU run: preflight | quick | full
+scripts/publish_run.sh     push a run's results to GitHub
 demo/                      static demo page
-tests/                     25 tests
+tests/                     29 tests
 ```
 
 ## Swapping the environment

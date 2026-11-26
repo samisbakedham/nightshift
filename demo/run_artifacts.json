@@ -4,11 +4,12 @@
   "placeholder_reason": "engine=stub: scripted/tiny model, NOT a real result. Run scripts/run_cloud.sh for real numbers.",
   "engine": "stub",
   "model": "stub",
+  "gate_mode": "log",
   "approx_tokens": true,
-  "created": "2026-11-25 19:07:13",
+  "created": "2026-11-25 21:01:42",
   "config": {
    "engine": "stub",
-   "model": "Qwen/Qwen2.5-7B-Instruct",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
    "arms": [
     "base",
     "rag",
@@ -23,12 +24,14 @@
    "replay_per_day": 8,
    "gate_reasoning_n": 15,
    "gate_tolerance": 0.1,
+   "gate": "log",
    "epochs": 1,
    "grad_accum": 4,
    "lr": 0.0001,
    "lora_r": 16,
    "rollout_temperature": 1.0,
    "max_new_tokens": 384,
+   "gen_batch": 32,
    "reason_max_new_tokens": 256,
    "kl_direction": "forward",
    "promote_threshold": 0.5,
@@ -95,12 +98,29 @@
     "module": "tessel.shard",
     "docs": "## tessel.shard  (released day 10)\n`from tessel.shard import Shard`\n- `Shard(points)`: polygon from a list of (x, y) vertices in order.\n- `s.expanse() -> float`: non-negative area (shoelace).\n- `s.rim() -> float`: perimeter rounded to 3 decimals.\n- `s.nudge(dx, dy) -> Shard`: translated copy."
    }
-  ]
+  ],
+  "work_units": {
+   "base": 630,
+   "rag": 927,
+   "sft": 2418,
+   "sdft": 2676
+  },
+  "arm_seconds": {
+   "base": 9.6,
+   "rag": 19.9,
+   "sft": 37.3,
+   "sdft": 37.4
+  },
+  "engine_info": null,
+  "gen_stats": {}
  },
  "arms": {
   "base": {
    "days": [
     {
+     "seconds": {
+      "eval": 0.2
+     },
      "eval": {
       "day": 1,
       "new_module_acc": 0.0,
@@ -119,6 +139,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 0.3
+     },
      "eval": {
       "day": 2,
       "new_module_acc": 0.0,
@@ -138,6 +161,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 0.5
+     },
      "eval": {
       "day": 3,
       "new_module_acc": 0.0,
@@ -158,6 +184,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 0.7
+     },
      "eval": {
       "day": 4,
       "new_module_acc": 0.0,
@@ -179,6 +208,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 1.0
+     },
      "eval": {
       "day": 5,
       "new_module_acc": 0.0,
@@ -201,6 +233,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 1.1
+     },
      "eval": {
       "day": 6,
       "new_module_acc": 0.0,
@@ -224,6 +259,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 1.2
+     },
      "eval": {
       "day": 7,
       "new_module_acc": 0.0,
@@ -248,6 +286,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 1.4
+     },
      "eval": {
       "day": 8,
       "new_module_acc": 0.0,
@@ -273,6 +314,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 1.5
+     },
      "eval": {
       "day": 9,
       "new_module_acc": 0.0,
@@ -299,6 +343,9 @@
      }
     },
     {
+     "seconds": {
+      "eval": 1.8
+     },
      "eval": {
       "day": 10,
       "new_module_acc": 0.0,
@@ -331,6 +378,10 @@
   "rag": {
    "days": [
     {
+     "seconds": {
+      "practice": 1.1,
+      "eval": 0.2
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 27,
@@ -379,6 +430,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.0,
+      "eval": 0.3
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 25,
@@ -428,6 +483,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.1,
+      "eval": 0.5
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 26,
@@ -478,6 +537,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.1,
+      "eval": 0.7
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 26,
@@ -529,6 +592,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.0,
+      "eval": 0.9
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 25,
@@ -581,6 +648,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.0,
+      "eval": 1.0
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 24,
@@ -634,6 +705,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.1,
+      "eval": 1.2
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 27,
@@ -688,6 +763,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.0,
+      "eval": 1.4
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 24,
@@ -743,6 +822,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.0,
+      "eval": 1.5
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 26,
@@ -799,6 +882,10 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.1,
+      "eval": 1.7
+     },
      "practice": {
       "practice_pass_rate": 1.0,
       "n_practice": 27,
@@ -861,6 +948,11 @@
   "sft": {
    "days": [
     {
+     "seconds": {
+      "practice": 1.9,
+      "night": 0.8,
+      "eval": 0.2
+     },
      "practice": {
       "practice_pass_rate": 0.0,
       "n_practice": 27,
@@ -899,6 +991,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": null,
        "reasoning": 1.0
@@ -907,6 +1000,7 @@
        "old_modules": null,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -928,6 +1022,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.7,
+      "night": 0.9,
+      "eval": 0.3
+     },
      "practice": {
       "practice_pass_rate": 0.1923,
       "n_practice": 26,
@@ -966,6 +1065,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -974,6 +1074,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -996,6 +1097,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 0.9,
+      "eval": 0.5
+     },
      "practice": {
       "practice_pass_rate": 0.36,
       "n_practice": 25,
@@ -1034,6 +1140,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1042,6 +1149,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1065,6 +1173,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 1.0,
+      "eval": 0.7
+     },
      "practice": {
       "practice_pass_rate": 0.4,
       "n_practice": 25,
@@ -1103,6 +1216,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1111,6 +1225,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1135,6 +1250,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 1.2,
+      "eval": 0.9
+     },
      "practice": {
       "practice_pass_rate": 0.4231,
       "n_practice": 26,
@@ -1173,6 +1293,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1181,6 +1302,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1206,6 +1328,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 1.3,
+      "eval": 1.0
+     },
      "practice": {
       "practice_pass_rate": 0.44,
       "n_practice": 25,
@@ -1244,6 +1371,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1252,6 +1380,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1278,6 +1407,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 1.4,
+      "eval": 1.2
+     },
      "practice": {
       "practice_pass_rate": 0.3462,
       "n_practice": 26,
@@ -1316,6 +1450,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1324,6 +1459,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1351,6 +1487,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.6,
+      "night": 1.6,
+      "eval": 1.4
+     },
      "practice": {
       "practice_pass_rate": 0.3704,
       "n_practice": 27,
@@ -1389,6 +1530,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1397,6 +1539,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1425,6 +1568,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.4,
+      "night": 1.6,
+      "eval": 1.6
+     },
      "practice": {
       "practice_pass_rate": 0.5,
       "n_practice": 24,
@@ -1463,6 +1611,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1471,6 +1620,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1500,6 +1650,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.4,
+      "night": 1.8,
+      "eval": 1.7
+     },
      "practice": {
       "practice_pass_rate": 0.5185,
       "n_practice": 27,
@@ -1538,6 +1693,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -1546,6 +1702,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -1959,6 +2116,11 @@
   "sdft": {
    "days": [
     {
+     "seconds": {
+      "practice": 1.9,
+      "night": 0.8,
+      "eval": 0.2
+     },
      "practice": {
       "practice_pass_rate": 0.0,
       "n_practice": 27,
@@ -1997,6 +2159,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": null,
        "reasoning": 1.0
@@ -2005,6 +2168,7 @@
        "old_modules": null,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2026,6 +2190,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.7,
+      "night": 0.8,
+      "eval": 0.3
+     },
      "practice": {
       "practice_pass_rate": 0.1923,
       "n_practice": 26,
@@ -2064,6 +2233,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2072,6 +2242,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2094,6 +2265,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 0.9,
+      "eval": 0.5
+     },
      "practice": {
       "practice_pass_rate": 0.36,
       "n_practice": 25,
@@ -2132,6 +2308,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2140,6 +2317,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2163,6 +2341,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 1.0,
+      "eval": 0.7
+     },
      "practice": {
       "practice_pass_rate": 0.4,
       "n_practice": 25,
@@ -2201,6 +2384,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2209,6 +2393,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2233,6 +2418,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.5,
+      "night": 1.2,
+      "eval": 0.8
+     },
      "practice": {
       "practice_pass_rate": 0.4231,
       "n_practice": 26,
@@ -2271,6 +2461,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2279,6 +2470,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2304,6 +2496,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.4,
+      "night": 1.3,
+      "eval": 1.0
+     },
      "practice": {
       "practice_pass_rate": 0.44,
       "n_practice": 25,
@@ -2342,6 +2539,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2350,6 +2548,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2376,6 +2575,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.6,
+      "night": 1.4,
+      "eval": 1.2
+     },
      "practice": {
       "practice_pass_rate": 0.3462,
       "n_practice": 26,
@@ -2414,6 +2618,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2422,6 +2627,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2449,6 +2655,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.6,
+      "night": 1.6,
+      "eval": 1.4
+     },
      "practice": {
       "practice_pass_rate": 0.3704,
       "n_practice": 27,
@@ -2487,6 +2698,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2495,6 +2707,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2523,6 +2736,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.4,
+      "night": 1.6,
+      "eval": 1.5
+     },
      "practice": {
       "practice_pass_rate": 0.5,
       "n_practice": 24,
@@ -2561,6 +2779,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2569,6 +2788,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },
@@ -2598,6 +2818,11 @@
      }
     },
     {
+     "seconds": {
+      "practice": 1.4,
+      "night": 1.8,
+      "eval": 1.8
+     },
      "practice": {
       "practice_pass_rate": 0.5185,
       "n_practice": 27,
@@ -2636,6 +2861,7 @@
        "loss": null,
        "note": "stub: no gradients"
       },
+      "gate_mode": "log",
       "gate_before": {
        "old_modules": 1.0,
        "reasoning": 1.0
@@ -2644,6 +2870,7 @@
        "old_modules": 1.0,
        "reasoning": 1.0
       },
+      "would_reject": false,
       "accepted": true,
       "rejected_because": []
      },

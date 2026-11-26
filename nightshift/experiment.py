@@ -38,7 +38,7 @@ GATE_SEED_BASE = 500
 @dataclass
 class Config:
     engine: str = "stub"
-    model: str = "Qwen/Qwen2.5-7B-Instruct"
+    model: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
     arms: tuple = ("base", "rag", "sft", "sdft")
     days: int = 10
     practice_per_day: int = 24
@@ -48,12 +48,16 @@ class Config:
     replay_per_day: int = 8
     gate_reasoning_n: int = 15
     gate_tolerance: float = 0.10
+    # "log": score every update on the gate but never roll back (fair benchmark: sft forgetting stays visible)
+    # "enforce": roll back regressed updates (deployment mode)   "off": skip gate scoring (fastest)
+    gate: str = "log"
     epochs: int = 1
     grad_accum: int = 4
     lr: float = 1e-4
     lora_r: int = 16
     rollout_temperature: float = 1.0
     max_new_tokens: int = 384
+    gen_batch: int = 32
     reason_max_new_tokens: int = 256
     kl_direction: str = "forward"
     promote_threshold: float = 0.5
@@ -88,6 +92,33 @@ class Experiment:
         self.eval_prompts = {t.prompt for t in eval_set(10, cfg.eval_per_template)}
         self.showcase_traces: list[dict] = []
         self.results: dict = {}
+        self.units: dict[str, int] = {}     # generated sequences + training examples, per arm (for time estimates)
+        self.seconds: dict[str, float] = {}
+        self._arm = None
+        self.base_gate = None
+        if policy is not None:
+            self._wrap(policy)
+
+    def _wrap(self, policy):
+        """Count work units (one generated sequence or one training example) per arm."""
+        gen, sdft, sft = policy.generate, policy.train_sdft, policy.train_sft
+
+        def count(n):
+            if self._arm:
+                self.units[self._arm] = self.units.get(self._arm, 0) + n
+
+        def g(reqs, *a, **k):
+            count(len(reqs))
+            return gen(reqs, *a, **k)
+
+        def t1(items, cfg):
+            count(2 * len(items) * cfg.epochs)  # rollout + forward/backward
+            return sdft(items, cfg)
+
+        def t2(items, cfg):
+            count(len(items) * cfg.epochs)
+            return sft(items, cfg)
+        policy.generate, policy.train_sdft, policy.train_sft = g, t1, t2
 
     # ------------------------------------------------------------------ helpers
     def lookup(self, tid: str) -> Task:
@@ -267,7 +298,8 @@ class Experiment:
         keep = [i for i, g in enumerate(t_grades) if g.passed]
         if not keep:  # nothing verified to learn: training on replay alone only adds noise
             return {"teacher_pass_rate": 0.0, "train_items": 0, "train": {"steps": 0, "loss_mean": None},
-                    "gate_before": None, "gate_after": None, "accepted": True, "skipped": True,
+                    "gate_mode": cfg.gate, "gate_before": None, "gate_after": None, "would_reject": False,
+                    "accepted": True, "skipped": True,
                     "rejected_because": ["skipped: teacher solved no practice task, nothing to distill"]}
         items = [TrainItem(student_messages=prompts.task_messages(tasks[i]), teacher_messages=t_msgs[i],
                            target=extract_code(t_outs[i]).strip() and f"```python\n{extract_code(t_outs[i]).strip()}\n```",
@@ -283,49 +315,59 @@ class Experiment:
             items += [TrainItem(m, m, target=o, kind="replay") for m, r, o in zip(rmsgs, rep, routs)
                       if reasoning.grade(o, r.answer)]
 
-        before = self.gate_score(day)
+        gate_on = cfg.gate != "off"
+        before = self.gate_score(day) if gate_on else None
         snap = self.policy.snapshot()
         stats = (self.policy.train_sdft if st.name == "sdft" else self.policy.train_sft)(items, cfg)
-        after = self.gate_score(day)
+        after = self.gate_score(day) if gate_on else None  # measured BEFORE any rollback
         reasons = []
-        if after["reasoning"] < self.base_gate["reasoning"] - cfg.gate_tolerance:
-            reasons.append("general reasoning regressed vs base")
-        if before["old_modules"] is not None and after["old_modules"] < before["old_modules"] - cfg.gate_tolerance:
-            reasons.append("earlier modules regressed vs yesterday")
-        accepted = not reasons
-        if not accepted:
+        if gate_on:
+            if after["reasoning"] < self.base_gate["reasoning"] - cfg.gate_tolerance:
+                reasons.append("general reasoning regressed vs base")
+            if before["old_modules"] is not None and after["old_modules"] < before["old_modules"] - cfg.gate_tolerance:
+                reasons.append("earlier modules regressed vs yesterday")
+        rolled_back = cfg.gate == "enforce" and bool(reasons)
+        if rolled_back:
             self.policy.restore(snap)
         return {"teacher_pass_rate": round(len(keep) / max(1, len(tasks)), 4), "train_items": len(items),
-                "train": stats, "gate_before": before, "gate_after": after, "accepted": accepted,
-                "rejected_because": reasons}
+                "train": stats, "gate_mode": cfg.gate, "gate_before": before, "gate_after": after,
+                "would_reject": bool(reasons), "accepted": not rolled_back, "rejected_because": reasons}
 
     # ------------------------------------------------------------------ main loop
     def run(self) -> dict:
         cfg = self.cfg
         init = self.policy.snapshot()
-        self.base_gate = self.gate_score(1)
-        log(f"base gate: {self.base_gate}")
+        if cfg.gate != "off":
+            self.base_gate = self.gate_score(1)
+            log(f"base gate: {self.base_gate}  (gate mode: {cfg.gate})")
         for arm in cfg.arms:
             self.policy.restore(init)
+            self._arm = arm
+            t_arm = time.time()
             st = ArmState(arm, LessonStore(cfg.promote_threshold), Curriculum(random.Random(cfg.seed)))
             days = []
             for day in range(1, cfg.days + 1):
-                rec: dict = {}
+                rec: dict = {"seconds": {}}
+                t0 = time.time()
                 if arm != "base":
                     p = self.practice(st, day)
+                    rec["seconds"]["practice"] = round(time.time() - t0, 1); t0 = time.time()
                     rec["practice"] = {k: v for k, v in p.items() if k not in ("tasks", "outs", "grades")}
                     if arm in ("sft", "sdft"):
                         rec["night"] = self.night(st, day, p["tasks"])
                         if day in cfg.checkpoint_days:
                             self.policy.save(str(self.out / "checkpoints" / arm / f"day{day}"))
+                        rec["seconds"]["night"] = round(time.time() - t0, 1); t0 = time.time()
                 rec["eval"] = self.evaluate(st, day)
+                rec["seconds"]["eval"] = round(time.time() - t0, 1)
+                self.seconds[arm] = round(time.time() - t_arm, 1)
                 days.append(rec)
                 self.results[arm] = {"days": days, "lessons": [l.to_dict() for l in st.lessons.lessons]}
                 self.flush()  # crash-safe: artifacts are always current to the last finished day
                 e = rec["eval"]
                 log(f"[{arm}] day {day}: new={e['new_module_acc']} retention={e['retention_acc']} "
                     f"all={e['all_acc']} unseen={e['unseen_family_acc']} reasoning={e['reasoning_acc']} mem_tokens={e['memory_tokens']}"
-                    + (f" gate={'ok' if rec['night']['accepted'] else 'ROLLBACK'}" if "night" in rec else ""))
+                    + (f" gate={_gate_word(rec['night'])}" if "night" in rec else ""))
         self.flush()
         self.trace_f.close()
         return self.results
@@ -334,7 +376,19 @@ class Experiment:
         self.trace_f.flush()
         art = build_artifacts(self.cfg, self.policy, self.results, self.showcase_traces, self.tasks,
                               self.showcase_ids, self.base_gate)
+        art["meta"]["work_units"] = dict(self.units)
+        art["meta"]["arm_seconds"] = dict(self.seconds)
+        art["meta"]["engine_info"] = getattr(self.policy, "engine_info", None)
+        art["meta"]["gen_stats"] = dict(getattr(self.policy, "gen_stats", {}) or {})
         (self.out / "run_artifacts.json").write_text(json.dumps(art, indent=1))
+
+
+def _gate_word(n: dict) -> str:
+    if n.get("skipped"):
+        return "skipped"
+    if not n["accepted"]:
+        return "ROLLBACK"
+    return "WOULD-ROLLBACK(logged)" if n.get("would_reject") else "ok"
 
 
 def build_artifacts(cfg, policy, results, showcase_traces, tasks, showcase_ids, base_gate) -> dict:
@@ -345,7 +399,7 @@ def build_artifacts(cfg, policy, results, showcase_traces, tasks, showcase_ids, 
             "placeholder_reason": (None if not placeholder else
                                    f"engine={cfg.engine}: scripted/tiny model, NOT a real result. "
                                    "Run scripts/run_cloud.sh for real numbers."),
-            "engine": cfg.engine, "model": policy.name, "approx_tokens": policy.approx_tokens,
+            "engine": cfg.engine, "model": policy.name, "gate_mode": cfg.gate, "approx_tokens": policy.approx_tokens,
             "created": time.strftime("%Y-%m-%d %H:%M:%S"), "config": asdict(cfg), "base_gate": base_gate,
             "releases": [{"day": r.day, "module": r.module, "docs": r.docs} for r in RELEASES],
         },

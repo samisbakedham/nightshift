@@ -1,21 +1,9 @@
-# Related work
+# Papers this builds on
 
-This list came out of an earlier brainstorm (Claude + Gemini). **Most of these were described as
-2025–2026 papers and have not been checked against the actual papers for this repo.** Treat
-titles, authors and the claims attributed to them as leads to verify, not citations.
-
-| idea | reported source | used here as |
+| paper | what it says | how it's used here |
 |---|---|---|
-| Self-distillation fine-tuning (SDFT): student matches its own hint-conditioned outputs to avoid forgetting | "SDFT", Shenfeld et al. (reported 2026) | the core training method |
-| On-policy updates forget less because they stay close (in KL) to the current model | "RL's Razor: Why online reinforcement learning forgets less", Shenfeld et al. (reported 2025) | the motivation for on-policy rollouts |
-| Dense token-level self-distillation can drift/collapse across sequential domains, esp. with a moving teacher | "Denser ≠ better: limits of on-policy self-distillation for continual post-training" (reported) | why the teacher is fixed |
-| Self-distillation can shorten/degrade reasoning; anchoring to a fixed initial teacher helps | "Why does self-distillation (sometimes) degrade the reasoning…" (reported) | why the gate checks reasoning, and the replay anchor |
-| Merging LoRA adapters for continual learning | "Merge before forget: a single LoRA continual learning via continual merging" (reported) | future work |
-| Regularizing activations/features instead of weights | "From weights to features: SAE-guided activation regularization for LLM continual learning" (reported) | future work |
-| Selecting training tasks at test time targeted at weaknesses | "Learning on the job: test-time curricula for targeted RL" (reported) | inspiration for the self-curriculum (theirs selects from a task bank; ours also generates tasks) |
+| Shenfeld, Damani, Hübotter, Agrawal. **Self-Distillation Enables Continual Learning.** ICML 2026. [arXiv:2601.19897](https://arxiv.org/abs/2601.19897) · [project page](https://self-distillation.github.io/SDFT) | Self-Distillation Fine-Tuning (SDFT): the model, conditioned on a demonstration in context, acts as its own teacher, so training is on-policy. Reports higher new-task accuracy than SFT with much less forgetting, with the gap growing with model size. | The core training method. **This repo is a variant:** the teacher is conditioned on library docs + the model's own verified lessons instead of demonstrations, and it is the frozen initial weights (LoRA off). The loss is implemented here (`nightshift/losses.py`), not taken from the paper's code. |
+| Shenfeld, Pari, Agrawal. **RL's Razor: Why Online Reinforcement Learning Forgets Less.** ICLR 2026. [arXiv:2509.04259](https://arxiv.org/abs/2509.04259) | At matched new-task accuracy, on-policy RL forgets less than SFT; among solutions, on-policy training favors the one closest in KL to the original model. | The motivation for on-policy rollouts, and for the `sft` vs `sdft` comparison. |
 
-Claims from that brainstorm **not** relied on here, because they weren't verified:
-- that Hugging Face TRL ships an `SDFTTrainer` (this repo implements the loss itself);
-- specific numbers such as "+4 points at 7B, +7 at 14B" or "4× wall-clock vs SFT".
-
-If you post results, read the actual papers first and cite what they actually say.
+Numbers above are the papers' own claims, not reproduced here. The point of this repo is to test
+the idea in a new setting (an invented library, learned day by day) with its own measurements.

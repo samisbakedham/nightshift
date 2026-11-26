@@ -5,7 +5,7 @@ That gives a fixed, never-drifting initial teacher for free: no second copy of
 the model in memory, and no EMA teacher that can drift across days.
 
 Engines:
-  * ``--engine hf --model Qwen/Qwen2.5-7B-Instruct``   the real experiment (GPU)
+  * ``--engine hf --model Qwen/Qwen2.5-Coder-7B-Instruct``   the real experiment (GPU)
   * ``--engine tiny``  a 2-layer random Llama + byte tokenizer, built locally from
     a config (no download). It fails every task; it exists to run the real
     training code paths (rollouts, alignment, KL, LoRA updates, rollback) on a laptop.
@@ -78,6 +78,14 @@ class HFPolicy(Policy):
         lcfg = LoraConfig(r=lora_r, lora_alpha=lora_alpha, lora_dropout=0.0, bias="none", task_type="CAUSAL_LM",
                           target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
         self.model = get_peft_model(base, lcfg)
+        trainable = [p for p in self.model.parameters() if p.requires_grad]
+        self.engine_info = {
+            "device": self.device, "base_dtype": str(next(base.parameters()).dtype),
+            "lora_dtype": str(trainable[0].dtype), "gen_batch": gen_batch,
+            "trainable_params": sum(p.numel() for p in trainable),
+        }
+        print(f"[engine] {self.name}: {self.engine_info}", flush=True)
+        self.gen_stats = {"sequences": 0, "tokens": 0, "hit_cap": 0}
 
     # ------------------------------------------------------------------ tokens
     def encode_prompt(self, messages: list[dict]) -> list[int]:
@@ -111,7 +119,7 @@ class HFPolicy(Policy):
             att = torch.tensor([[0] * (L - len(p)) + [1] * len(p) for p in chunk], device=self.device)
             # repetition_penalty pinned to 1.0 so sampled rollouts come from the same distribution we distill on
             kw = dict(do_sample=temperature > 0, max_new_tokens=max_new_tokens, pad_token_id=pad, eos_token_id=eos,
-                      repetition_penalty=1.0)
+                      repetition_penalty=1.0, use_cache=True)
             if temperature > 0:
                 kw.update(temperature=temperature, top_p=1.0, top_k=0)
             with self._ctx(use_base):
@@ -119,7 +127,11 @@ class HFPolicy(Policy):
             for row in gen[:, L:].tolist():
                 if eos in row:
                     row = row[: row.index(eos) + 1]
+                else:
+                    self.gen_stats["hit_cap"] += 1  # ran to max_new_tokens without EOS
                 row = [t for t in row if t != pad]
+                self.gen_stats["sequences"] += 1
+                self.gen_stats["tokens"] += len(row)
                 out_all.append(row)
         return out_all
 

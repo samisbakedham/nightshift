@@ -12,6 +12,10 @@ fetch("run_artifacts.json").then((r) => r.json()).then((data) => {
   const maxDay = Math.max(...armsPresent.map((a) => A.arms[a].days.length));
   $("day").max = maxDay;
   $("day").value = maxDay;
+  const gm = A.meta.gate_mode || "enforce";
+  $("gateNote").textContent = gm === "log"
+    ? "Gate mode: log. Every update is scored on the regression gate but never rolled back, so forgetting shows up in the charts instead of being hidden."
+    : gm === "off" ? "Gate mode: off. No gate scoring; updates are always kept." : "Gate mode: enforce. Updates that regress are rolled back.";
   if (A.meta.placeholder) {
     $("banner").innerHTML = `<div class="banner">DRY-RUN PLACEHOLDER: these numbers come from a scripted stub, not a trained model.
       ${esc(A.meta.placeholder_reason)}</div>`;
@@ -48,7 +52,7 @@ function renderCards() {
     const tok = e.memory_tokens;
     return `<div class="panel">
       <div class="arm"><span class="dot" style="background:${COLOR[a]}"></span>${a}
-        ${n ? `<span class="badge ${n.skipped ? "" : n.accepted ? "pass" : "fail"}" style="margin-left:auto">${n.skipped ? "no update" : n.accepted ? "update kept" : "rolled back"}</span>` : ""}</div>
+        ${n ? `<span class="badge ${n.skipped ? "" : !n.accepted || n.would_reject ? "fail" : "pass"}" style="margin-left:auto">${n.skipped ? "no update" : !n.accepted ? "rolled back" : n.would_reject ? "gate: regressed" : "gate: ok"}</span>` : ""}</div>
       <div class="kpis">
         <div class="kpi"><div class="v">${pct(e.unseen_family_acc)}</div><div class="l">unseen task types</div></div>
         <div class="kpi"><div class="v">${pct(e.all_acc)}</div><div class="l">all held-out tasks</div></div>
@@ -138,7 +142,7 @@ function renderNights() {
         <td class="m">${p.authored.filter((x) => x.accepted).length}/${p.authored.length}</td>
         <td class="m">${pct(n.teacher_pass_rate)}</td><td class="m">${n.train_items}</td><td class="m">${loss}</td>
         <td class="m">${n.gate_after ? pct(n.gate_after.reasoning) : "–"}</td>
-        <td class="m" style="color:${n.skipped ? "var(--muted)" : n.accepted ? "var(--sdft)" : "var(--bad)"}">${n.skipped ? "skipped (nothing verified)" : n.accepted ? "kept" : "ROLLED BACK: " + esc(n.rejected_because.join("; "))}</td></tr>`);
+        <td class="m" style="color:${n.skipped ? "var(--muted)" : n.accepted && !n.would_reject ? "var(--sdft)" : "var(--bad)"}">${n.skipped ? "skipped (nothing verified)" : !n.accepted ? "ROLLED BACK: " + esc(n.rejected_because.join("; ")) : n.would_reject ? "kept, but regressed: " + esc(n.rejected_because.join("; ")) : n.gate_after ? "kept, gate ok" : "kept (no gate)"}</td></tr>`);
     });
   }
   $("nights").innerHTML = `<tr><th>arm</th><th>day</th><th>practice pass</th><th>self-made tasks</th><th>teacher pass</th><th>train items</th><th>loss</th><th>gate: reasoning</th><th>update</th></tr>` + rows.join("");

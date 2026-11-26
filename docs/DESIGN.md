@@ -51,6 +51,10 @@ ids it came from, so you can trace or remove it (`LessonStore.forget_source`).
 - `base` and `rag` bracket the result (floor and ceiling).
 - One task type per module is held out of practice, the gate and training; it's the headline metric.
 - `sft` and `sdft` share the same teacher and the same filtering rule (teacher-verified tasks only).
+- The regression gate runs in `log` mode for the benchmark: each update is scored (pre-rollback)
+  and flagged if it regressed, but never undone. Rolling back would hide exactly the forgetting
+  that `sft` vs `sdft` is meant to measure. `--gate enforce` is the deployment mode; `--gate off`
+  (`--no-gate`) skips gate scoring to save GPU time.
 - The eval, gate and practice splits are seed-disjoint. The gate never uses eval tasks, so rollback
   decisions don't peek at the reported numbers.
 - Reasoning eval items are generated, not taken from a public benchmark, so there's no
@@ -59,7 +63,8 @@ ids it came from, so you can trace or remove it (`LessonStore.forget_source`).
 ## Known risks / what could go wrong in the real run
 
 - **Teacher too weak.** If the base model can't use the docs in context (low `teacher_pass_rate` in
-  the night log), there is nothing to distill. Use 7B+; try 14B if 7B's teacher pass rate is low.
+  the night log), there is nothing to distill. This happened locally with Qwen2.5-0.5B (teacher
+  solved 0–17%). `run_cloud.sh preflight` checks it first; try Coder-14B if Coder-7B is below 70%.
 - **Few training items per night.** Only teacher-verified tasks are trained on. Raise
   `--practice-per-day` or `--epochs` if the night log shows tiny `train_items`.
 - **Lesson quality.** Real lessons are free text from the model. Verification filters out useless
@@ -68,8 +73,9 @@ ids it came from, so you can trace or remove it (`LessonStore.forget_source`).
   claiming small differences.
 - **Sandboxing.** Model code runs in a subprocess with timeouts and rlimits. That's containment,
   not security; use a disposable VM.
-- **Speed.** Generation uses plain HF `generate`. Swapping in vLLM for rollouts and evals is the
-  obvious speedup.
+- **Speed.** Generation uses plain HF `generate` (bf16 on CUDA, KV cache on, batches of
+  `--gen-batch 32`, `--max-new-tokens 384`). The preflight reports how many generations hit the
+  token cap. Swapping in vLLM for rollouts and evals is the obvious next speedup.
 
 ## Ideas not built yet
 
