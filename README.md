@@ -111,7 +111,23 @@ python -m nightshift.run --engine tiny --days 2 --practice-per-day 4 --max-new-t
 gate, artifacts). `tiny` is a real 2-layer random transformer that runs the actual training code
 (rollouts, KL, LoRA, rollback). **Neither produces meaningful results.**
 
-**Real run (one 80 GB GPU, A100/H100), default model `Qwen/Qwen2.5-Coder-7B-Instruct`:**
+**Real run on [Modal](https://modal.com) (easiest; the free Starter plan's $30/month ≈ 12 h of A100-80GB):**
+
+```bash
+pip install modal
+modal setup                                                  # sign in once
+modal run scripts/modal_run.py --mode preflight              # GO / NO-GO + time estimate (~$1-2)
+modal run --detach scripts/modal_run.py --mode full          # 10 days; --mode quick = 3 days
+```
+
+Options: `--model Qwen/Qwen2.5-Coder-14B-Instruct`, `--gpu L40S|H100` (default `A100-80GB`),
+`--extra "--arms base,sdft"`. `--detach` keeps the job alive if your laptop sleeps. Everything is
+written to the Modal Volume `nightshift-vol` (model cache + `runs/<name>/`), committed after every
+simulated day, so a run cut short by the 12 h timeout or by credits keeps its finished days. When the
+job ends, `run_artifacts.json` and `run.log` are downloaded to `runs/<name>/`; if you were disconnected,
+fetch them with `modal volume get nightshift-vol runs/<name> runs/`, then `bash scripts/publish_run.sh runs/<name>`.
+
+**Real run on your own box (one 80 GB GPU, A100/H100), default model `Qwen/Qwen2.5-Coder-7B-Instruct`:**
 
 ```bash
 gh auth login                                   # the repo is private
@@ -170,6 +186,7 @@ nightshift/
   run.py                   CLI
 scripts/run_cloud.sh       GPU run: preflight | quick | full
 scripts/publish_run.sh     push a run's results to GitHub
+scripts/modal_run.py       same three modes on Modal, with a persistent volume
 demo/                      static demo page
 tests/                     29 tests
 ```
