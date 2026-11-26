@@ -42,7 +42,7 @@ def _ints(rng, n, lo=-9, hi=20):
 RUN_DOCS = """\
 ## tessel.run  (released day 1)
 `from tessel.run import Run`
-- `Run.of(*items)` / `Run(iterable)`: build an immutable sequence.
+- `Run.of(*items) -> Run` / `Run(iterable) -> Run`: build an immutable sequence.
 - `r.thread(fn) -> Run`: apply fn to every item (tessel's map).
 - `r.sieve(pred) -> Run`: keep items where pred is truthy (tessel's filter).
 - `r.knot(fn, *, seed) -> value`: left fold, fn(acc, item); returns the final accumulator itself (not a Run). `seed` is KEYWORD-ONLY and required.
@@ -91,7 +91,7 @@ GRID_DOCS = """\
 `from tessel.grid import Grid`
 - `Grid.weave(rows, cols, fill=0) -> Grid`: new grid.
 - `g.span() -> (rows, cols)`.
-- `g.at(r, c)`: read a cell. Negative indices raise IndexError.
+- `g.at(r, c) -> value`: the cell's value. Negative indices raise IndexError.
 - `g.stamp(r, c, value) -> Grid`: returns a NEW grid; grids are immutable (no item assignment).
 - `g.rotate() -> Grid`: 90 degrees clockwise.
 - `g.rows() -> list[tuple]`."""
@@ -136,7 +136,7 @@ def _grid_row_sums(rng):
 SCROLL_DOCS = """\
 ## tessel.scroll  (released day 3)
 `from tessel.scroll import Scroll`
-- `Scroll(text)`; the raw string is `s.text`.
+- `Scroll(text) -> Scroll`; the raw string is `s.text` (a str).
 - `s.verses() -> list[str]`: non-empty lines, stripped.
 - `s.tally() -> dict[str, int]`: word counts; lowercased, only letters a-z kept.
 - `s.echo(n) -> Scroll`: text repeated n times joined by " | "."""
@@ -189,7 +189,7 @@ def _scroll_first_verse_len(rng):
 TICK_DOCS = """\
 ## tessel.tick  (released day 4)
 `from tessel.tick import Tick`
-- `Tick(minutes)`; whole minutes in `t.minutes`.
+- `Tick(minutes) -> Tick`; whole minutes in `t.minutes` (an int).
 - `Tick.parse("2h15m" | "45m" | "3h") -> Tick`.
 - `t.fmt() -> "HH:MM"` zero-padded (hours may exceed 24).
 - `a + b -> Tick`.
@@ -239,12 +239,12 @@ def _tick_longest(rng):
 BAG_DOCS = """\
 ## tessel.bag  (released day 5)
 `from tessel.bag import Bag`
-- `Bag()`: empty multiset.
-- `b.drop(item, n=1) -> Bag`: add n copies (chainable).
-- `b.lift(item) -> Bag`: remove ONE copy; KeyError if absent.
+- `Bag() -> Bag`: empty multiset. Bags are MUTABLE: drop/lift change the bag in place and return it.
+- `b.drop(item, n=1) -> Bag`: add n copies in place; returns the same bag (chainable).
+- `b.lift(item) -> Bag`: remove ONE copy in place; returns the same bag. KeyError if absent.
 - `b.weight(item) -> int`: copies of item (0 if absent).
 - `b.heaviest(k) -> list[(item, count)]`: count desc, ties by item asc.
-- `len(b)`: total copies."""
+- `len(b) -> int`: total copies."""
 
 
 def _bag_top(rng):
@@ -287,8 +287,8 @@ def _bag_bulk(rng):
 ATLAS_DOCS = """\
 ## tessel.atlas  (released day 6)
 `from tessel.atlas import Atlas`
-- `Atlas()`: empty undirected weighted graph.
-- `a.link(u, v, cost) -> Atlas`: add an undirected edge (chainable).
+- `Atlas() -> Atlas`: empty undirected weighted graph (mutable).
+- `a.link(u, v, cost) -> Atlas`: add an undirected edge in place; returns the same atlas (chainable).
 - `a.voyage(start, end) -> (total_cost, [start, ..., end]) | None`: cheapest route.
 - `a.ports() -> list`: all nodes, sorted."""
 
@@ -358,7 +358,7 @@ def _atlas_unreachable(rng):
 ROT_DOCS = """\
 ## tessel.rot  (released day 7)
 `from tessel.rot import Rot`
-- `Rot(k)`: keyed rotation cipher (k taken mod 26).
+- `Rot(k) -> Rot`: keyed rotation cipher (k taken mod 26).
 - `c.seal(s) -> str`: rotate letters forward by k, preserving case; other chars unchanged.
 - `c.unseal(s) -> str`: rotate back."""
 
@@ -411,9 +411,9 @@ def _rot_upper(rng):
 VAULT_DOCS = """\
 ## tessel.vault  (released day 8)
 `from tessel.vault import Vault`
-- `Vault()`: versioned key-value store.
+- `Vault() -> Vault`: versioned key-value store (mutable).
 - `v.put(key, value) -> int`: store a new version; returns version number starting at 1.
-- `v.get(key, at=None)`: latest value, or the value at 1-based version `at`. KeyError if missing.
+- `v.get(key, at=None) -> value`: latest value, or the value at 1-based version `at`. KeyError if missing.
 - `v.lineage(key) -> list`: all versions oldest first ([] if missing)."""
 
 
@@ -464,9 +464,9 @@ def _vault_changes(rng):
 FLOW_DOCS = """\
 ## tessel.flow  (released day 9)
 `from tessel.flow import Flow`
-- `Flow()`: empty pipeline. `Flow() >> f >> g` applies f then g. Flows are immutable.
+- `Flow() -> Flow`: empty pipeline. `fl >> f -> Flow`: a NEW flow with step f appended, so `Flow() >> f >> g` applies f then g. Flows are immutable.
 - `fl.guard(pred, fallback) -> Flow`: appends a step that replaces x with fallback when pred(x) is falsy.
-- `fl.pour(x)`: run the pipeline on x and return the result."""
+- `fl.pour(x) -> value`: run the pipeline on x and return the result."""
 
 
 def _flow_affine(rng):
@@ -512,7 +512,7 @@ def _flow_chain(rng):
 SHARD_DOCS = """\
 ## tessel.shard  (released day 10)
 `from tessel.shard import Shard`
-- `Shard(points)`: polygon from a list of (x, y) vertices in order.
+- `Shard(points) -> Shard`: polygon from a list of (x, y) vertices in order.
 - `s.expanse() -> float`: non-negative area (shoelace).
 - `s.rim() -> float`: perimeter rounded to 3 decimals.
 - `s.nudge(dx, dy) -> Shard`: translated copy."""
