@@ -1,0 +1,278 @@
+{
+ "meta": {
+  "placeholder": false,
+  "placeholder_reason": null,
+  "engine": "hf",
+  "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+  "gate_mode": "off",
+  "approx_tokens": false,
+  "created": "2026-11-26 06:30:47",
+  "config": {
+   "engine": "hf",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+   "arms": [
+    "sdft"
+   ],
+   "days": 1,
+   "practice_per_day": 24,
+   "authored_per_day": 0,
+   "eval_per_template": 4,
+   "reasoning_eval_n": 15,
+   "replay_per_day": 8,
+   "gate_reasoning_n": 15,
+   "gate_tolerance": 0.1,
+   "gate": "off",
+   "epochs": 5,
+   "grad_accum": 2,
+   "lr": 0.0005,
+   "lora_r": 16,
+   "rollout_temperature": 1.0,
+   "max_new_tokens": 384,
+   "gen_batch": 32,
+   "reason_max_new_tokens": 256,
+   "kl_direction": "forward",
+   "promote_threshold": 0.5,
+   "checkpoint_days": [
+    0
+   ],
+   "out_dir": "/vol/runs/sweep-lr5e-4",
+   "seed": 0
+  },
+  "base_gate": null,
+  "releases": [
+   {
+    "day": 1,
+    "module": "tessel.run",
+    "docs": "## tessel.run  (released day 1)\n`from tessel.run import Run`\n- `Run.of(*items) -> Run` / `Run(iterable) -> Run`: build an immutable sequence.\n- `r.thread(fn) -> Run`: apply fn to every item (tessel's map).\n- `r.sieve(pred) -> Run`: keep items where pred is truthy (tessel's filter).\n- `r.knot(fn, *, seed) -> value`: left fold, fn(acc, item); returns the final accumulator itself (not a Run). `seed` is KEYWORD-ONLY and required.\n- `r.braid(other) -> Run`: interleave a0,b0,a1,b1,... leftovers appended.\n- `r.unravel() -> list`: materialize as a list.\n- Runs have no `.map`, `.filter`, `.reduce`, indexing or iteration helpers."
+   },
+   {
+    "day": 2,
+    "module": "tessel.grid",
+    "docs": "## tessel.grid  (released day 2)\n`from tessel.grid import Grid`\n- `Grid.weave(rows, cols, fill=0) -> Grid`: new grid.\n- `g.span() -> (rows, cols)`.\n- `g.at(r, c) -> value`: the cell's value. Negative indices raise IndexError.\n- `g.stamp(r, c, value) -> Grid`: returns a NEW grid; grids are immutable (no item assignment).\n- `g.rotate() -> Grid`: 90 degrees clockwise.\n- `g.rows() -> list[tuple]`."
+   },
+   {
+    "day": 3,
+    "module": "tessel.scroll",
+    "docs": "## tessel.scroll  (released day 3)\n`from tessel.scroll import Scroll`\n- `Scroll(text) -> Scroll`; the raw string is `s.text` (a str).\n- `s.verses() -> list[str]`: non-empty lines, stripped.\n- `s.tally() -> dict[str, int]`: word counts; lowercased, only letters a-z kept.\n- `s.echo(n) -> Scroll`: text repeated n times joined by \" | \"."
+   },
+   {
+    "day": 4,
+    "module": "tessel.tick",
+    "docs": "## tessel.tick  (released day 4)\n`from tessel.tick import Tick`\n- `Tick(minutes) -> Tick`; whole minutes in `t.minutes` (an int).\n- `Tick.parse(\"2h15m\" | \"45m\" | \"3h\") -> Tick`.\n- `t.fmt() -> \"HH:MM\"` zero-padded (hours may exceed 24).\n- `a + b -> Tick`.\n- `t.scale(k) -> Tick`: multiply and round DOWN to whole minutes."
+   },
+   {
+    "day": 5,
+    "module": "tessel.bag",
+    "docs": "## tessel.bag  (released day 5)\n`from tessel.bag import Bag`\n- `Bag() -> Bag`: empty multiset. Bags are MUTABLE: drop/lift change the bag in place and return it.\n- `b.drop(item, n=1) -> Bag`: add n copies in place; returns the same bag (chainable).\n- `b.lift(item) -> Bag`: remove ONE copy in place; returns the same bag. KeyError if absent.\n- `b.weight(item) -> int`: copies of item (0 if absent).\n- `b.heaviest(k) -> list[(item, count)]`: count desc, ties by item asc.\n- `len(b) -> int`: total copies."
+   },
+   {
+    "day": 6,
+    "module": "tessel.atlas",
+    "docs": "## tessel.atlas  (released day 6)\n`from tessel.atlas import Atlas`\n- `Atlas() -> Atlas`: empty undirected weighted graph (mutable).\n- `a.link(u, v, cost) -> Atlas`: add an undirected edge in place; returns the same atlas (chainable).\n- `a.voyage(start, end) -> (total_cost, [start, ..., end]) | None`: cheapest route.\n- `a.ports() -> list`: all nodes, sorted."
+   },
+   {
+    "day": 7,
+    "module": "tessel.rot",
+    "docs": "## tessel.rot  (released day 7)\n`from tessel.rot import Rot`\n- `Rot(k) -> Rot`: keyed rotation cipher (k taken mod 26).\n- `c.seal(s) -> str`: rotate letters forward by k, preserving case; other chars unchanged.\n- `c.unseal(s) -> str`: rotate back."
+   },
+   {
+    "day": 8,
+    "module": "tessel.vault",
+    "docs": "## tessel.vault  (released day 8)\n`from tessel.vault import Vault`\n- `Vault() -> Vault`: versioned key-value store (mutable).\n- `v.put(key, value) -> int`: store a new version; returns version number starting at 1.\n- `v.get(key, at=None) -> value`: latest value, or the value at 1-based version `at`. KeyError if missing.\n- `v.lineage(key) -> list`: all versions oldest first ([] if missing)."
+   },
+   {
+    "day": 9,
+    "module": "tessel.flow",
+    "docs": "## tessel.flow  (released day 9)\n`from tessel.flow import Flow`\n- `Flow() -> Flow`: empty pipeline. `fl >> f -> Flow`: a NEW flow with step f appended, so `Flow() >> f >> g` applies f then g. Flows are immutable.\n- `fl.guard(pred, fallback) -> Flow`: appends a step that replaces x with fallback when pred(x) is falsy.\n- `fl.pour(x) -> value`: run the pipeline on x and return the result."
+   },
+   {
+    "day": 10,
+    "module": "tessel.shard",
+    "docs": "## tessel.shard  (released day 10)\n`from tessel.shard import Shard`\n- `Shard(points) -> Shard`: polygon from a list of (x, y) vertices in order.\n- `s.expanse() -> float`: non-negative area (shoelace).\n- `s.rim() -> float`: perimeter rounded to 3 decimals.\n- `s.nudge(dx, dy) -> Shard`: translated copy."
+   }
+  ],
+  "work_units": {
+   "sdft": 443
+  },
+  "arm_seconds": {
+   "sdft": 142.9
+  },
+  "engine_info": {
+   "device": "cuda",
+   "base_dtype": "torch.bfloat16",
+   "lora_dtype": "torch.float32",
+   "gen_batch": 32,
+   "trainable_params": 40370176
+  },
+  "gen_stats": {
+   "sequences": 283,
+   "tokens": 23790,
+   "hit_cap": 3
+  }
+ },
+ "arms": {
+  "sdft": {
+   "days": [
+    {
+     "seconds": {
+      "practice": 13.0,
+      "night": 114.3,
+      "eval": 15.6
+     },
+     "practice": {
+      "practice_pass_rate": 0.0,
+      "n_practice": 24,
+      "authored": [],
+      "new_lessons": 24,
+      "lessons_total": 2,
+      "lessons_verified": 0,
+      "lessons_promoted": 0
+     },
+     "night": {
+      "teacher_pass_rate": 1.0,
+      "train_items": 32,
+      "train": {
+       "steps": 160,
+       "loss_first": 0.4182432293891907,
+       "loss_last": 0.0008072451455518603,
+       "loss_mean": 0.07614035743654313,
+       "tokens": 15683
+      },
+      "gate_mode": "off",
+      "gate_before": null,
+      "gate_after": null,
+      "would_reject": false,
+      "accepted": true,
+      "rejected_because": []
+     },
+     "eval": {
+      "day": 1,
+      "new_module_acc": 1.0,
+      "retention_acc": null,
+      "day1_module_acc": 1.0,
+      "all_acc": 1.0,
+      "unseen_family_acc": 1.0,
+      "seen_family_acc": 1.0,
+      "reasoning_acc": 0.9333,
+      "per_module": {
+       "tessel.run": 1.0
+      },
+      "avg_prompt_tokens": 91.3,
+      "memory_tokens": 0.0,
+      "n_eval_tasks": 12
+     }
+    }
+   ],
+   "lessons": [
+    {
+     "id": "L1-run.sum_sq_even#practice1000021",
+     "module": "tessel.run",
+     "text": "Always use `r.thread(fn)` for applying a function to each item in a `Run`, and `r.sieve(pred)` for filtering items based on a predicate.",
+     "signature": "tessel.run:other",
+     "day": 1,
+     "sources": [
+      "run.sum_sq_even#practice1000001",
+      "run.sum_sq_even#practice1000003",
+      "run.sum_sq_even#practice1000005",
+      "run.sum_sq_even#practice1000007",
+      "run.sum_sq_even#practice1000009",
+      "run.sum_sq_even#practice1000011",
+      "run.sum_sq_even#practice1000015",
+      "run.sum_sq_even#practice1000016",
+      "run.sum_sq_even#practice1000018",
+      "run.sum_sq_even#practice1000020",
+      "run.sum_sq_even#practice1000021"
+     ],
+     "verified": false,
+     "surprise": 0.9230769230769232,
+     "recurrence": 11,
+     "promoted": false,
+     "priority": 0.0
+    },
+    {
+     "id": "L1-run.braid_shift#practice1000024",
+     "module": "tessel.run",
+     "text": "Always use `Run.of` or `Run(iterable)` to create a `Run` instance, not `run` as a function.",
+     "signature": "tessel.run:import:run",
+     "day": 1,
+     "sources": [
+      "run.braid_shift#practice1000002",
+      "run.braid_shift#practice1000004",
+      "run.braid_shift#practice1000006",
+      "run.braid_shift#practice1000008",
+      "run.braid_shift#practice1000010",
+      "run.braid_shift#practice1000012",
+      "run.braid_shift#practice1000013",
+      "run.braid_shift#practice1000014",
+      "run.braid_shift#practice1000017",
+      "run.braid_shift#practice1000019",
+      "run.braid_shift#practice1000022",
+      "run.braid_shift#practice1000023",
+      "run.braid_shift#practice1000024"
+     ],
+     "verified": false,
+     "surprise": 0.9333333333333333,
+     "recurrence": 13,
+     "promoted": false,
+     "priority": 0.0
+    }
+   ]
+  }
+ },
+ "showcase_tasks": [
+  {
+   "id": "run.max_fold#eval0",
+   "template": "run.max_fold",
+   "module": "tessel.run",
+   "day": 1,
+   "split": "eval",
+   "seed": 0,
+   "prompt": "Write `solve(r)` that takes a tessel `Run` of ints and returns a plain list of the items strictly greater than 6, each squared.",
+   "preamble": "from tessel.run import Run",
+   "tests": [
+    [
+     "(Run.of(16, -6, -8),)",
+     "[256]",
+     ""
+    ],
+    [
+     "(Run.of(-7, 13),)",
+     "[169]",
+     ""
+    ],
+    [
+     "(Run.of(7, 12, 15, 13, -5, 1),)",
+     "[49, 144, 225, 169]",
+     ""
+    ]
+   ],
+   "heldout": true
+  }
+ ],
+ "traces": [
+  {
+   "phase": "eval",
+   "arm": "sdft",
+   "day": 1,
+   "task_id": "run.max_fold#eval0",
+   "module": "tessel.run",
+   "messages": [
+    {
+     "role": "system",
+     "content": "You are an expert Python programmer. Reply with exactly one ```python code block that defines the requested function. Import what you need from the tessel library."
+    },
+    {
+     "role": "user",
+     "content": "Write `solve(r)` that takes a tessel `Run` of ints and returns a plain list of the items strictly greater than 6, each squared.\nThe relevant module is `tessel.run`."
+    }
+   ],
+   "output": "```python\nfrom tessel.run import Run\n\ndef solve(r: Run) -> list:\n    return r.sieve(lambda x: x > 6).thread(lambda x: x ** 2).unravel()\n```",
+   "grade": {
+    "passed": true,
+    "n_pass": 3,
+    "n_total": 3,
+    "feedback": "All tests passed."
+   }
+  }
+ ]
+}

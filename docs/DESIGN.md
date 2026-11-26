@@ -66,7 +66,7 @@ ids it came from, so you can trace or remove it (`LessonStore.forget_source`).
   the night log), there is nothing to distill. This happened locally with Qwen2.5-0.5B (teacher
   solved 0–17%). `run_cloud.sh preflight` checks it first; try Coder-14B if Coder-7B is below 70%.
 - **Few training items per night.** Only teacher-verified tasks are trained on. Raise
-  `--practice-per-day` or `--epochs` if the night log shows tiny `train_items`.
+  `--practice-per-day` if the night log shows tiny `train_items`. Defaults: 5 passes per night on fresh rollouts, `--lr 5e-4`, `--grad-accum 2`, LoRA r=16 (picked by a 1-day test; 1e-3 overfit).
 - **Lesson quality.** Real lessons are free text from the model. Verification filters out useless
   ones, but surprise is a cheap proxy (task failure rate), not a token-level loss.
 - **Variance.** 60 held-out tasks and 30 reasoning items by day 10 are small. Run more seeds before

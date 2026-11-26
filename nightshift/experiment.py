@@ -51,9 +51,11 @@ class Config:
     # "log": score every update on the gate but never roll back (fair benchmark: sft forgetting stays visible)
     # "enforce": roll back regressed updates (deployment mode)   "off": skip gate scoring (fastest)
     gate: str = "log"
-    epochs: int = 1
-    grad_accum: int = 4
-    lr: float = 1e-4
+    # nightly update: 5 passes, each on FRESH on-policy rollouts; 2 items per Adam step.
+    # Tuned on a 1-day Coder-7B test: lr 1e-4 x 1 pass -> 0/12, 5e-4 x 5 -> 12/12, 1e-3 x 5 -> 8/12 (overfit).
+    epochs: int = 5
+    grad_accum: int = 2
+    lr: float = 5e-4
     lora_r: int = 16
     rollout_temperature: float = 1.0
     max_new_tokens: int = 384

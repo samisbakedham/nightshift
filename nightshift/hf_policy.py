@@ -159,7 +159,7 @@ class HFPolicy(Policy):
         the teacher too, which anchors general behavior to the base model.
         """
         opt = self._opt()
-        losses, n_tok = [], 0
+        losses, n_tok, opt_steps = [], 0, 0
         for epoch in range(cfg.epochs):
             order = list(range(len(items)))
             random.shuffle(order)
@@ -183,14 +183,15 @@ class HFPolicy(Policy):
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                     opt.step()
                     opt.zero_grad()
-        return {"steps": len(losses), "loss_first": losses[0] if losses else None,
+                    opt_steps += 1
+        return {"steps": len(losses), "opt_steps": opt_steps, "loss_first": losses[0] if losses else None,
                 "loss_last": losses[-1] if losses else None,
                 "loss_mean": sum(losses) / len(losses) if losses else None, "tokens": n_tok}
 
     def train_sft(self, items: list[TrainItem], cfg) -> dict:
         """Plain supervised fine-tuning: cross-entropy on given target texts."""
         opt = self._opt()
-        losses = []
+        losses, opt_steps = [], 0
         self.model.train()
         for epoch in range(cfg.epochs):
             order = list(range(len(items)))
@@ -207,7 +208,8 @@ class HFPolicy(Policy):
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                     opt.step()
                     opt.zero_grad()
-        return {"steps": len(losses), "loss_first": losses[0] if losses else None,
+                    opt_steps += 1
+        return {"steps": len(losses), "opt_steps": opt_steps, "loss_first": losses[0] if losses else None,
                 "loss_last": losses[-1] if losses else None,
                 "loss_mean": sum(losses) / len(losses) if losses else None}
 

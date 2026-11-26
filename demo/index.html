@@ -79,6 +79,9 @@
   .err { font: 12px var(--mono); color: var(--bad); margin-top: 4px; }
   .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } @media (max-width: 760px) { .ba { grid-template-columns: 1fr; } }
   .tag { font: 600 11px var(--mono); color: var(--muted); }
+  .ok { font: 12px var(--mono); color: var(--sdft); margin-top: 4px; }
+  .ba3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } @media (max-width: 900px) { .ba3 { grid-template-columns: 1fr; } }
+  .hl-entry .num { color: var(--sdft); }
   .lesson { margin-top: 14px; padding: 10px 14px; border-left: 3px solid var(--sdft); background: #0f1a17; font-size: 14px; max-width: 820px; }
   svg.loop { width: 100%; height: auto; display: block; }
   svg.loop .box { fill: #0d141c; stroke: var(--line); } svg.loop text { font: 12px var(--mono); fill: var(--text); }

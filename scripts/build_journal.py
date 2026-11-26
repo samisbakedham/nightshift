@@ -104,11 +104,60 @@ def build_run(spec):
     return out
 
 
+TUNING = {
+    "id": "night-tuning", "kind": "compare",
+    "title": "A stronger night: 12/12 closed-book, including a task type it never trained on",
+    "hardware": "Modal, NVIDIA A100 80GB",
+    "what": "Same day 1, sdft only, three versions of the nightly update. Every pass re-samples the student's own "
+            "attempts after the previous update; 2 attempts per optimizer step; LoRA rank 16.",
+    "lesson": "One pass at lr 1e-4 barely nudged the weights. Five passes at 5e-4 moved the student from 0/12 to 12/12 "
+              "with no docs in its prompt, including 4/4 on the held-out task type, and reasoning stayed at 93%. "
+              "At 1e-3 it over-learned: it used knot() even where the answer had to be a list. 5e-4 is now the default "
+              "for both sft and sdft.",
+    "configs": [("lr 1e-4 · 1 pass", "20261125-215708-preflight"), ("lr 5e-4 · 5 passes", "sweep-lr5e-4"),
+                ("lr 1e-3 · 5 passes", "sweep-lr1e-3")],
+}
+
+
+def build_compare(spec):
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from nightshift.env.releases import RELEASES
+    heldout = {t.id for r in RELEASES for t in r.templates if t.heldout}
+    rows = []
+    for label, rid in spec["configs"]:
+        A = json.loads((RES / rid / "run_artifacts.json").read_text())
+        cfg, day = A["meta"]["config"], A["arms"]["sdft"]["days"][0]
+        ev = [r for r in traces(rid) if r["phase"] == "eval" and r["arm"] == "sdft" and r["day"] == 1]
+        un = [r for r in ev if r["task_id"].split("#")[0] in heldout]
+        n_items = day["night"]["train_items"]
+        sample = un[0] if un else None
+        rows.append({
+            "label": label, "run": rid, "lr": cfg["lr"], "passes": cfg["epochs"],
+            "opt_steps": cfg["epochs"] * -(-n_items // cfg["grad_accum"]),
+            "acc": {"k": sum(r["grade"]["passed"] for r in ev), "n": len(ev)},
+            "unseen": {"k": sum(r["grade"]["passed"] for r in un), "n": len(un)},
+            "reasoning": day["eval"]["reasoning_acc"],
+            "unseen_code": code(sample["output"]) if sample else None,
+            "unseen_result": sample["grade"]["feedback"][:120] if sample else None,
+            "unseen_passed": bool(sample and sample["grade"]["passed"]),
+        })
+    unseen_prompt = None
+    for r in traces(spec["configs"][1][1]):
+        if r["phase"] == "eval" and r["task_id"].split("#")[0] in heldout:
+            unseen_prompt = next(m["content"] for m in r["messages"] if m["role"] == "user")
+            break
+    return dict({k: v for k, v in spec.items() if k != "configs"}, rows=rows, unseen_prompt=unseen_prompt,
+                model="Qwen/Qwen2.5-Coder-7B-Instruct")
+
+
 def main():
     runs = [build_run(s) for s in RUNS if (RES / s["id"] / "run_artifacts.json").exists()]
+    if all((RES / rid / "run_artifacts.json").exists() for _, rid in TUNING["configs"]):
+        runs.append(build_compare(TUNING))
     j = {"generated_from": "results/ (run_artifacts.json + traces.jsonl)", "runs": runs,
-         "next": "Strengthen the nightly update (more on-policy passes, higher learning rate; same for sft and sdft), "
-                 "check that one night moves the student off 0%, then run all 10 days."}
+         "next": "Run all 10 days with the tuned nightly update (all four arms) to see whether the student keeps "
+                 "learning each new module without forgetting the old ones."}
     (ROOT / "demo" / "journal.json").write_text(json.dumps(j, indent=1))
     print(f"wrote demo/journal.json ({len(runs)} runs)")
 

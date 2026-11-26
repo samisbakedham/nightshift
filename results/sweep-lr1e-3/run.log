@@ -1,0 +1,20 @@
+
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]
+Loading weights:  13%|█▎        | 44/339 [00:00<00:01, 196.28it/s]
+Loading weights:  19%|█▉        | 64/339 [00:00<00:02, 126.65it/s]
+Loading weights:  29%|██▉       | 100/339 [00:00<00:02, 115.64it/s]
+Loading weights:  38%|███▊      | 130/339 [00:00<00:01, 150.19it/s]
+Loading weights:  44%|████▍     | 150/339 [00:01<00:01, 155.61it/s]
+Loading weights:  50%|████▉     | 169/339 [00:01<00:01, 155.27it/s]
+Loading weights:  59%|█████▊    | 199/339 [00:01<00:00, 186.18it/s]
+Loading weights:  71%|███████   | 240/339 [00:01<00:00, 237.45it/s]
+Loading weights:  79%|███████▉  | 267/339 [00:03<00:01, 43.16it/s] 
+Loading weights:  84%|████████▍ | 286/339 [00:05<00:02, 24.42it/s]
+Loading weights:  88%|████████▊ | 300/339 [00:05<00:01, 25.20it/s]
+Loading weights:  92%|█████████▏| 311/339 [00:07<00:01, 17.52it/s]
+Loading weights: 100%|██████████| 339/339 [00:07<00:00, 46.69it/s]
+[engine] Qwen/Qwen2.5-Coder-7B-Instruct: {'device': 'cuda', 'base_dtype': 'torch.bfloat16', 'lora_dtype': 'torch.float32', 'gen_batch': 32, 'trainable_params': 40370176}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+06:31:35 [sdft] day 1: new=0.6667 retention=None all=0.6667 unseen=0.0 reasoning=0.8667 mem_tokens=0.0 gate=ok
+
+wrote /vol/runs/sweep-lr1e-3/run_artifacts.json and traces.jsonl

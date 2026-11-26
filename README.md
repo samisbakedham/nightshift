@@ -37,10 +37,13 @@ so passing it means the model learned the API, not the prompt.
 | local, 2 days | Qwen2.5-0.5B | 0/12 | 2/12 | 1/6 | 0/12 |
 | Modal A100, day 1 | Qwen2.5-Coder-7B | 0/12 | 8/12 | 13/24 | 0/12 |
 | same, after fixing one doc line | Qwen2.5-Coder-7B | 0/12 | 12/12 | 24/24 | 0/12 |
+| same, tuned night (5 passes, lr 5e-4) | Qwen2.5-Coder-7B | 0/12 | 12/12 | 24/24 | **12/12** (unseen type 4/4) |
 
 The 7B teacher's first misses were all one mistake caused by a gap in the docs (`knot` didn't say it
-returns a plain value). After one night the student adopted the teacher's chained style but not yet the
-library's names, and general reasoning was unharmed (80% → 87%). Full story, charts and the exact code:
+returns a plain value). With one weak training pass, the student adopted the teacher's chained style but not yet the
+library's names. With five passes at lr 5e-4 (now the default) it solved all 12 held-out tasks
+after one night with no docs in its prompt, including the task type it never trained on, and general
+reasoning stayed intact (80% base, 93% after). lr 1e-3 over-learned (8/12, unseen 0/4). Full story, charts and the exact code:
 the demo page's lab notebook (`demo/`, data in `results/`, built by `scripts/build_journal.py`).
 The 10-day run hasn't happened yet.
 

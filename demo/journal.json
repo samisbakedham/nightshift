@@ -246,7 +246,76 @@
     "after": "from tessel.run import Run\n\ndef solve(r):\n    return r.filter(lambda x: x % 2 == 0).map(lambda x: x * 3).foldl(lambda acc, x: acc + x, 0)",
     "after_error": "AttributeError: 'Run' object has no attribute 'filter'"
    }
+  },
+  {
+   "id": "night-tuning",
+   "kind": "compare",
+   "title": "A stronger night: 12/12 closed-book, including a task type it never trained on",
+   "hardware": "Modal, NVIDIA A100 80GB",
+   "what": "Same day 1, sdft only, three versions of the nightly update. Every pass re-samples the student's own attempts after the previous update; 2 attempts per optimizer step; LoRA rank 16.",
+   "lesson": "One pass at lr 1e-4 barely nudged the weights. Five passes at 5e-4 moved the student from 0/12 to 12/12 with no docs in its prompt, including 4/4 on the held-out task type, and reasoning stayed at 93%. At 1e-3 it over-learned: it used knot() even where the answer had to be a list. 5e-4 is now the default for both sft and sdft.",
+   "rows": [
+    {
+     "label": "lr 1e-4 \u00b7 1 pass",
+     "run": "20261125-215708-preflight",
+     "lr": 0.0001,
+     "passes": 1,
+     "opt_steps": 8,
+     "acc": {
+      "k": 0,
+      "n": 12
+     },
+     "unseen": {
+      "k": 0,
+      "n": 4
+     },
+     "reasoning": 0.8667,
+     "unseen_code": "from tessel.run import Run\n\ndef solve(r):\n    return r.filter(lambda x: x > 6).map(lambda x: x ** 2).to_list()",
+     "unseen_result": "AttributeError: 'Run' object has no attribute 'filter'",
+     "unseen_passed": false
+    },
+    {
+     "label": "lr 5e-4 \u00b7 5 passes",
+     "run": "sweep-lr5e-4",
+     "lr": 0.0005,
+     "passes": 5,
+     "opt_steps": 80,
+     "acc": {
+      "k": 12,
+      "n": 12
+     },
+     "unseen": {
+      "k": 4,
+      "n": 4
+     },
+     "reasoning": 0.9333,
+     "unseen_code": "from tessel.run import Run\n\ndef solve(r: Run) -> list:\n    return r.sieve(lambda x: x > 6).thread(lambda x: x ** 2).unravel()",
+     "unseen_result": "All tests passed.",
+     "unseen_passed": true
+    },
+    {
+     "label": "lr 1e-3 \u00b7 5 passes",
+     "run": "sweep-lr1e-3",
+     "lr": 0.001,
+     "passes": 5,
+     "opt_steps": 80,
+     "acc": {
+      "k": 8,
+      "n": 12
+     },
+     "unseen": {
+      "k": 0,
+      "n": 4
+     },
+     "reasoning": 0.8667,
+     "unseen_code": "from tessel.run import Run\n\ndef solve(r):\n    return r.sieve(lambda x: x > 6).thread(lambda x: x**2).knot(lambda acc, item: acc + item, seed=0)",
+     "unseen_result": "Wrong answer: got 256, expected [256]",
+     "unseen_passed": false
+    }
+   ],
+   "unseen_prompt": "Write `solve(r)` that takes a tessel `Run` of ints and returns a plain list of the items strictly greater than 6, each squared.\nThe relevant module is `tessel.run`.",
+   "model": "Qwen/Qwen2.5-Coder-7B-Instruct"
   }
  ],
- "next": "Strengthen the nightly update (more on-policy passes, higher learning rate; same for sft and sdft), check that one night moves the student off 0%, then run all 10 days."
+ "next": "Run all 10 days with the tuned nightly update (all four arms) to see whether the student keeps learning each new module without forgetting the old ones."
 }
